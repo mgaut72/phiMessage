@@ -71,7 +71,7 @@ define(['react', 'session', 'components/keygen'], function(React, Session, KeyGe
                 if (this.state.session)
                     content = React.DOM.div({}, "Welcome, " + this.state.username);
                 else
-                    content = KeyGenerationWizard({});
+                    content = KeyGenerationWizard({username: this.state.username});
             } else
                 content = Login({onLogin: this.handleLogin});
 
