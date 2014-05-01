@@ -5,4 +5,4 @@ RUN     cd /data/phiMessage && pip install -e .
 
 WORKDIR /data/phiMessage
 EXPOSE  5000
-CMD     cd /data/phiMessage && python phi_server/server.py
+CMD     cd /data/phiMessage && python phi_message/server.py
