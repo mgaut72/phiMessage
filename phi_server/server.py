@@ -1,6 +1,6 @@
 import collections
 import json
-from flask import Flask, Response, request, jsonify
+from flask import Flask, Response, request
 
 app = Flask(__name__)
 
@@ -24,7 +24,7 @@ def keys(username):
                 'ecdsa' : {'x' : ex, 'y' : ey}}
         database[username].append(keys)
         print "added " + str(keys) + " to the db"
-        return jsonify(**keys)
+        return json.dumps(keys)
 
     elif request.method == 'GET':
         return json.dumps(database[username])
