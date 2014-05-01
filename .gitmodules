@@ -1,3 +1,3 @@
-[submodule "phi_server/static/js/jsbn"]
-	path = phi_server/static/js/jsbn
+[submodule "phi_message/static/js/jsbn"]
+	path = phi_message/static/js/jsbn
 	url = git@github.com:jasondavies/jsbn.git
