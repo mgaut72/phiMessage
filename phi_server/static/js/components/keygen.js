@@ -1,4 +1,4 @@
-define(['react'], function(React) {
+define(['react', 'rsa'], function(React, RSA) {
 
     var GenerateRSA = React.createClass({
         componentDidMount: function() {
@@ -68,15 +68,8 @@ define(['react'], function(React) {
         },
         generateRSAKeys: function() {
             console.log('generating rsa keys');
-            setTimeout(function() {
-                this.setState({keys: {rsa: {
-                    p: "0x9aeb1ed8cd7d13eb9cbeaa78b4f2f0cb",
-                    q: "0xd7ce3b30fabae3cb11c16d24ffdedc8c",
-                    n: "0xcbbf7c7da5a19ff6cff50b7ea226be97",
-                    e: "0xa179cfbe6e53735818ef5eb5b7cd61b9",
-                    d: "0xdcc9db270ff09b4dea40f5aefb153caf"
-                }}});
-            }.bind(this), 1000);
+            var key = RSA.generate();
+            this.setState({keys: {rsa: key}});
         },
         generateECDSAKeys: function() {
             console.log('generating ecdsa keys');
@@ -97,7 +90,20 @@ define(['react'], function(React) {
                 "To being using \u03C6-Message, we must first generate some cryptographic keys. To begin, click 'Next'.");
         },
         rsa: function() {
-            return GenerateRSA({keys: this.state.keys.rsa, generateKeys: this.generateRSAKeys});
+            var keys;
+            if (this.state.keys.rsa)
+                keys = {
+                    p: this.state.keys.rsa.p,
+                    q: this.state.keys.rsa.q,
+                    n: this.state.keys.rsa.n,
+                    e: this.state.keys.rsa.e,
+                    d: this.state.keys.rsa.d
+                };
+
+            return GenerateRSA({
+                keys: keys,
+                generateKeys: this.generateRSAKeys
+            });
         },
         ecdsa: function() {
             return GenerateECDSA({keys: this.state.keys.ecdsa, generateKeys: this.generateECDSAKeys});
