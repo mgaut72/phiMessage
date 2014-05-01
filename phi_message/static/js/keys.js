@@ -1,4 +1,4 @@
-define(['rsvp'], function(RSVP) {
+define(['rsvp', 'jsbn/jsbn2'], function(RSVP, JSBN) {
 
     var getJSON = function(url) {
         var promise = new RSVP.Promise(function(resolve, reject) {
@@ -43,8 +43,12 @@ define(['rsvp'], function(RSVP) {
 
     return {
         publish: function(username, rsaKey, ecdsaKey) {
+
+            var rng = new SecureRandom();
+            var deviceId = new BigInteger(256, 1, rng);
+
             var payload = {
-                device_id: "1234",
+                device_id: deviceId.toRadix(16),
                 rsa: {
                     n: rsaKey.n.toRadix(16),
                     e: rsaKey.e.toString(16)
