@@ -1,5 +1,13 @@
 define(['react', 'rsa', 'ecdsa', 'keys'], function(React, RSA, ECDSA, Keys) {
 
+    var KeyField = React.createClass({
+        render: function() {
+            return React.DOM.div({className: 'form-group'},
+                React.DOM.label({}, this.props.name),
+                React.DOM.input({className: 'form-control', value: this.props.content, readOnly: true}));
+        }
+    });
+
     var GenerateRSA = React.createClass({
         componentDidMount: function() {
             this.props.generateKeys();
@@ -8,17 +16,12 @@ define(['react', 'rsa', 'ecdsa', 'keys'], function(React, RSA, ECDSA, Keys) {
 
             var content;
             if (this.props.keys) {
-                content = React.DOM.dl({},
-                    React.DOM.dt({}, "p"),
-                    React.DOM.dd({}, this.props.keys.p),
-                    React.DOM.dt({}, "q"),
-                    React.DOM.dd({}, this.props.keys.q),
-                    React.DOM.dt({}, "n"),
-                    React.DOM.dd({}, this.props.keys.n),
-                    React.DOM.dt({}, "e"),
-                    React.DOM.dd({}, this.props.keys.e),
-                    React.DOM.dt({}, "d"),
-                    React.DOM.dd({}, this.props.keys.d));
+                content = React.DOM.div({},
+                    KeyField({name: 'p', content: this.props.keys.p}),
+                    KeyField({name: 'q', content: this.props.keys.q}),
+                    KeyField({name: 'n', content: this.props.keys.n}),
+                    KeyField({name: 'e', content: this.props.keys.e}),
+                    KeyField({name: 'd', content: this.props.keys.d}));
             } else {
                 content = React.DOM.div({}, "busy");
             }
@@ -38,13 +41,10 @@ define(['react', 'rsa', 'ecdsa', 'keys'], function(React, RSA, ECDSA, Keys) {
 
             var content;
             if (this.props.keys) {
-                content = React.DOM.dl({},
-                    React.DOM.dt({}, "e"),
-                    React.DOM.dd({}, this.props.keys.e),
-                    React.DOM.dt({}, "x"),
-                    React.DOM.dd({}, this.props.keys.x),
-                    React.DOM.dt({}, "y"),
-                    React.DOM.dd({}, this.props.keys.y));
+                content = React.DOM.div({},
+                    KeyField({name: 'e', content: this.props.keys.e}),
+                    KeyField({name: 'x', content: this.props.keys.x.toBigInteger().toString()}),
+                    KeyField({name: 'y', content: this.props.keys.y.toBigInteger().toString()}));
             } else
                 content = React.DOM.div({}, "busy");
 
