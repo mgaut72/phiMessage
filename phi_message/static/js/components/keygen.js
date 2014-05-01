@@ -1,4 +1,4 @@
-define(['react', 'rsa', 'ecdsa'], function(React, RSA, ECDSA) {
+define(['react', 'rsa', 'ecdsa', 'keys'], function(React, RSA, ECDSA, Keys) {
 
     var GenerateRSA = React.createClass({
         componentDidMount: function() {
@@ -39,14 +39,12 @@ define(['react', 'rsa', 'ecdsa'], function(React, RSA, ECDSA) {
             var content;
             if (this.props.keys) {
                 content = React.DOM.dl({},
+                    React.DOM.dt({}, "e"),
+                    React.DOM.dd({}, this.props.keys.e),
                     React.DOM.dt({}, "x"),
                     React.DOM.dd({}, this.props.keys.x),
                     React.DOM.dt({}, "y"),
-                    React.DOM.dd({}, this.props.keys.y),
-                    React.DOM.dt({}, "e"),
-                    React.DOM.dd({}, this.props.keys.e),
-                    React.DOM.dt({}, "e \u00D7 (x,y)"),
-                    React.DOM.dd({}, this.props.keys.publicKey));
+                    React.DOM.dd({}, this.props.keys.y));
             } else
                 content = React.DOM.div({}, "busy");
 
@@ -54,6 +52,17 @@ define(['react', 'rsa', 'ecdsa'], function(React, RSA, ECDSA) {
                 React.DOM.h2({}, "Generate an ECDSA Key Pair"),
                 React.DOM.p({}, "We'll be using the Elliptic Curve Digital Signature Algorithm for verifying the authenticity of messages. Below are keys we generated for you:"),
                 content);
+        }
+    });
+
+    var PublishKeys = React.createClass({
+        componentDidMount: function() {
+            this.props.publishKeys();
+        },
+        render: function() {
+            return React.DOM.div({},
+                React.DOM.h2({}, "Send public keys over to our servers"),
+                React.DOM.p({}, "We'll hold onto your public keys so that your friends can use them to send you messages."));
         }
     });
 
@@ -71,15 +80,26 @@ define(['react', 'rsa', 'ecdsa'], function(React, RSA, ECDSA) {
         generateRSAKeys: function() {
             console.log('generating rsa keys');
             var key = RSA.generate();
-            this.setState({keys: {rsa: key}});
+            this.state.keys.rsa = key;
+            this.setState({keys: this.state.keys});
         },
         generateECDSAKeys: function() {
             console.log('generating ecdsa keys');
             var key = ECDSA.generate();
-            this.setState({keys: {ecdsa: key}});
+            this.state.keys.ecdsa = key;
+            this.setState({keys: this.state.keys});
         },
         nextStep: function() {
             this.setState({step: this.state.step + 1});
+        },
+        publishKeys: function() {
+            console.log(this.state.keys);
+            Keys.publish(this.props.username,
+                this.state.keys.rsa,
+                this.state.keys.ecdsa)
+                .then(function() {
+                    this.setState({sendingComplete: true});
+                }.bind(this));
         },
         intro: function() {
             return React.DOM.div({},
@@ -107,10 +127,9 @@ define(['react', 'rsa', 'ecdsa'], function(React, RSA, ECDSA) {
             if (this.state.keys.ecdsa) {
                 var key = this.state.keys.ecdsa;
                 keys = {
-                    x: key.g.getX(),
-                    y: key.g.getY(),
                     e: key.e,
-                    publicKey: key.publicKey.getX()
+                    x: key.publicKey.getX(),
+                    y: key.publicKey.getY()
                 };
             }
 
@@ -120,11 +139,10 @@ define(['react', 'rsa', 'ecdsa'], function(React, RSA, ECDSA) {
             });
         },
         transmit: function() {
-            return React.DOM.div({},
-                React.DOM.h2({}, "Send public keys over to our servers"),
-                React.DOM.p({}, "We'll hold onto your public keys so that your friends can use them to send you messages."));
+            return PublishKeys({publishKeys: this.publishKeys});
         },
         render: function() {
+            console.log(this.state);
             var steps = [this.intro, this.rsa, this.ecdsa, this.transmit];
             var onFinalStep = this.state.step == steps.length - 1;
             return React.DOM.div({},
