@@ -10,14 +10,14 @@ Key generation happens for any *new* device when you log in.
 
 ```javascript
 {
-    “device_id”: “1cda4928ed8592834bfe834”
-    “rsa”: {
-        “n”: “121240913402934234234092385234”,
-        “e”: “29384029384029350295098309238049”
+    "device_id": "1cda4928ed8592834bfe834"
+    "rsa": {
+        "n": "121240913402934234234092385234",
+        "e": "29384029384029350295098309238049"
     },
-    “ecdsa”: {
-        “x”: “28795287349abcdef”,
-        “y”: “82349287398afdcedface”
+    "ecdsa": {
+        "x": "28795287349abcdef",
+        "y": "82349287398afdcedface"
     }
 }
 ```
@@ -35,17 +35,17 @@ Key generation happens for any *new* device when you log in.
 
 ```javascript
 {
-    “sender”: “bob”,
-    “ciphertext”: [
+    "sender": "bob",
+    "ciphertext": [
         {
-            “device_id”: “82734982735982705893745092387405298”,
-            “message”: {
-                “content”: “92837498237498abce987987fed”,
-                “signature”: “2384092359080fedce”
+            "device_id": "82734982735982705893745092387405298",
+            "message": {
+                "content": "92837498237498abce987987fed",
+                "signature": "2384092359080fedce"
             },
-            “key”: {
-                “content”: “abcdef123456789abc123”,
-                “signature”: “238497234ab”
+            "key": {
+                "content": "abcdef123456789abc123",
+                "signature": "238497234ab"
             }
         },
         .
