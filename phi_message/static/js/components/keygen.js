@@ -1,4 +1,4 @@
-define(['react', 'rsa'], function(React, RSA) {
+define(['react', 'rsa', 'ecdsa'], function(React, RSA, ECDSA) {
 
     var GenerateRSA = React.createClass({
         componentDidMount: function() {
@@ -43,8 +43,10 @@ define(['react', 'rsa'], function(React, RSA) {
                     React.DOM.dd({}, this.props.keys.x),
                     React.DOM.dt({}, "y"),
                     React.DOM.dd({}, this.props.keys.y),
+                    React.DOM.dt({}, "e"),
+                    React.DOM.dd({}, this.props.keys.e),
                     React.DOM.dt({}, "e \u00D7 (x,y)"),
-                    React.DOM.dd({}, this.props.keys.product));
+                    React.DOM.dd({}, this.props.keys.publicKey));
             } else
                 content = React.DOM.div({}, "busy");
 
@@ -73,13 +75,8 @@ define(['react', 'rsa'], function(React, RSA) {
         },
         generateECDSAKeys: function() {
             console.log('generating ecdsa keys');
-            setTimeout(function() {
-                this.setState({keys: {ecdsa: {
-                    x: "0x9aeb1ed8cd7d13eb9cbeaa78b4f2f0cb",
-                    y: "0xd7ce3b30fabae3cb11c16d24ffdedc8c",
-                    product: "0xcbbf7c7da5a19ff6cff50b7ea226be97"
-                }}});
-            }.bind(this), 1000);
+            var key = ECDSA.generate();
+            this.setState({keys: {ecdsa: key}});
         },
         nextStep: function() {
             this.setState({step: this.state.step + 1});
@@ -106,7 +103,21 @@ define(['react', 'rsa'], function(React, RSA) {
             });
         },
         ecdsa: function() {
-            return GenerateECDSA({keys: this.state.keys.ecdsa, generateKeys: this.generateECDSAKeys});
+            var keys;
+            if (this.state.keys.ecdsa) {
+                var key = this.state.keys.ecdsa;
+                keys = {
+                    x: key.g.getX(),
+                    y: key.g.getY(),
+                    e: key.e,
+                    publicKey: key.publicKey.getX()
+                };
+            }
+
+            return GenerateECDSA({
+                keys: keys,
+                generateKeys: this.generateECDSAKeys
+            });
         },
         transmit: function() {
             return React.DOM.div({},
