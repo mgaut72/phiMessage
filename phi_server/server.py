@@ -1,6 +1,6 @@
 import collections
 import json
-from flask import Flask, Response, request
+from flask import Flask, Response, request, render_template
 
 app = Flask(__name__)
 
@@ -28,6 +28,10 @@ def keys(username):
 
     elif request.method == 'GET':
         return json.dumps(database[username])
+
+@app.route('/')
+def index():
+    return render_template('application.html')
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', debug=True)
