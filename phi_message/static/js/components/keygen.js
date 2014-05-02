@@ -3,8 +3,9 @@ define(['react', 'rsa', 'ecdsa', 'keys'], function(React, RSA, ECDSA, Keys) {
     var KeyField = React.createClass({
         render: function() {
             return React.DOM.div({className: 'form-group'},
-                React.DOM.label({}, this.props.name),
-                React.DOM.input({className: 'form-control', value: this.props.content, readOnly: true}));
+                React.DOM.label({className: 'col-sm-1 control-label'}, this.props.name),
+                React.DOM.div({className: 'col-sm-10'},
+                    React.DOM.input({className: 'form-control', value: this.props.content, readOnly: true})));
         }
     });
 
@@ -16,7 +17,7 @@ define(['react', 'rsa', 'ecdsa', 'keys'], function(React, RSA, ECDSA, Keys) {
 
             var content;
             if (this.props.keys) {
-                content = React.DOM.div({},
+                content = React.DOM.form({className: 'form-horizontal', role: 'form'},
                     KeyField({name: 'p', content: this.props.keys.p}),
                     KeyField({name: 'q', content: this.props.keys.q}),
                     KeyField({name: 'n', content: this.props.keys.n}),
@@ -41,7 +42,7 @@ define(['react', 'rsa', 'ecdsa', 'keys'], function(React, RSA, ECDSA, Keys) {
 
             var content;
             if (this.props.keys) {
-                content = React.DOM.div({},
+                content = React.DOM.form({className: 'form-horizontal', role: 'form'},
                     KeyField({name: 'e', content: this.props.keys.e}),
                     KeyField({name: 'x', content: this.props.keys.x.toBigInteger().toString()}),
                     KeyField({name: 'y', content: this.props.keys.y.toBigInteger().toString()}));
