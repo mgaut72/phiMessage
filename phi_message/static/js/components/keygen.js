@@ -104,7 +104,7 @@ define(['react', 'rsa', 'ecdsa', 'keys'], function(React, RSA, ECDSA, Keys) {
         intro: function() {
             return React.DOM.div({},
                 React.DOM.h2({}, "Key Generation"),
-                "To being using \u03C6-Message, we must first generate some cryptographic keys. To begin, click 'Next'.");
+                React.DOM.p({}, "To being using \uD835\uDF11message, we must first generate some cryptographic keys. To begin, click 'Next'."));
         },
         rsa: function() {
             var keys;

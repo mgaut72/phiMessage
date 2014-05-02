@@ -1,0 +1,25 @@
+header {
+    padding: 10px 20px;
+    background-color: #eee;
+    border-bottom: 1px solid #ddd;
+}
+
+h1 {
+    font-size: 24px;
+    margin-top: 0;
+    margin-bottom: 5px;
+}
+
+h1.hidden {
+    position: absolute;
+    left: 100%;
+}
+
+h1::before {
+    content: '𝜑';
+    font-size: 1.5em;
+}
+
+#content {
+    margin: 20px;
+}
