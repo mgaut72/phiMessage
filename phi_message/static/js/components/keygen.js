@@ -68,6 +68,20 @@ define(['react', 'rsa', 'ecdsa', 'keys'], function(React, RSA, ECDSA, Keys) {
     });
 
     var KeyGenerationWizard = React.createClass({
+        statics: {
+            keysToJSON: function(keys) {
+                return {
+                    rsa: {
+                        n: keys.rsa.n.toRadix(16),
+                        e: keys.rsa.e.toString(16)
+                    },
+                    ecdsa: {
+                        x: keys.ecdsa.publicKey.getX().toBigInteger().toRadix(16),
+                        y: keys.ecdsa.publicKey.getY().toBigInteger().toRadix(16)
+                    }
+                };
+            }
+        },
         getInitialState: function() {
             return {
                 step: 0,
@@ -94,10 +108,8 @@ define(['react', 'rsa', 'ecdsa', 'keys'], function(React, RSA, ECDSA, Keys) {
             this.setState({step: this.state.step + 1});
         },
         publishKeys: function() {
-            console.log(this.state.keys);
             Keys.publish(this.props.username,
-                this.state.keys.rsa,
-                this.state.keys.ecdsa)
+                KeyGenerationWizard.keysToJSON(this.state.keys))
                 .then(function() {
                     this.setState({sendingComplete: true});
                 }.bind(this));
@@ -142,8 +154,11 @@ define(['react', 'rsa', 'ecdsa', 'keys'], function(React, RSA, ECDSA, Keys) {
         transmit: function() {
             return PublishKeys({publishKeys: this.publishKeys});
         },
-        render: function() {
+        finish: function() {
             console.log(this.state);
+            this.props.onFinish(KeyGenerationWizard.keysToJSON(this.state.keys));
+        },
+        render: function() {
             var steps = [this.intro, this.rsa, this.ecdsa, this.transmit];
             var onFinalStep = this.state.step == steps.length - 1;
             return React.DOM.div({},

@@ -55,23 +55,29 @@ define(['react', 'session', 'components/keygen'], function(React, Session, KeyGe
     return React.createClass({
         getInitialState: function() {
             return {
-                username: null,
-                session: null
+                session: Session.getSession()
             };
         },
         handleLogin: function(username) {
             this.setState({
-                username: username,
-                session: Session.getSession(username)
+                session: {username: username}
             });
+        },
+        saveKeys: function(keys) {
+            console.log('root.saveKeys');
+            var session = Session.saveSession(this.state.session.username, keys);
+            this.setState({session: Session.getSession()});
         },
         render: function() {
             var content;
-            if (this.state.username) {
-                if (this.state.session)
-                    content = React.DOM.div({}, "Welcome, " + this.state.username);
+            if (this.state.session) {
+                if (this.state.session.keys)
+                    content = React.DOM.div({},
+                        "Welcome, " + this.state.session.username);
                 else
-                    content = KeyGenerationWizard({username: this.state.username});
+                    content = KeyGenerationWizard({
+                        username: this.state.session.username,
+                        onFinish: this.saveKeys});
             } else
                 content = Login({onLogin: this.handleLogin});
 

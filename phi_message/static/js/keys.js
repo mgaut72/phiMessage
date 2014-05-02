@@ -42,22 +42,17 @@ define(['rsvp', 'jsbn/jsbn2'], function(RSVP, JSBN) {
     };
 
     return {
-        publish: function(username, rsaKey, ecdsaKey) {
+        publish: function(username, keys) {
 
             var rng = new SecureRandom();
             var deviceId = new BigInteger(256, 1, rng);
 
             var payload = {
                 device_id: deviceId.toRadix(16),
-                rsa: {
-                    n: rsaKey.n.toRadix(16),
-                    e: rsaKey.e.toString(16)
-                },
-                ecdsa: {
-                    x: ecdsaKey.publicKey.getX().toBigInteger().toRadix(16),
-                    y: ecdsaKey.publicKey.getY().toBigInteger().toRadix(16)
-                }
+                rsa: keys.rsa,
+                ecdsa: keys.ecdsa
             };
+
             return postJSON('/keys/' + username, payload);
         }
     };
