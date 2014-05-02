@@ -10,8 +10,7 @@ define(['react', 'session', 'components/keygen'], function(React, Session, KeyGe
     var LoginForm = React.createClass({
         getInitialState: function() {
             return {
-                username: '',
-                password: ''
+                username: ''
             };
         },
         handleSubmit: function(e) {
@@ -30,16 +29,6 @@ define(['react', 'session', 'components/keygen'], function(React, Session, KeyGe
                             this.setState({username: e.target.value});
                         }.bind(this)
                     })),
-                React.DOM.div({className: 'form-group'},
-                    React.DOM.label({}, "Password: "),
-                    React.DOM.input({
-                        className: 'form-control',
-                        type: 'password',
-                        value: this.state.password,
-                        onChange: function(e) {
-                            this.setState({password: e.target.value});
-                        }.bind(this)
-                    })),
                 React.DOM.button({className: 'btn btn-primary'}, "Login"));
         }
     });
@@ -47,7 +36,7 @@ define(['react', 'session', 'components/keygen'], function(React, Session, KeyGe
     var Login = React.createClass({
         render: function() {
             return React.DOM.div({},
-                React.DOM.p({}, "Welcome to \uD835\uDF11message! Please log in."),
+                React.DOM.p({}, "Welcome to \uD835\uDF11message! What's your name?"),
                 LoginForm({onLogin: this.props.onLogin}));
         }
     });
