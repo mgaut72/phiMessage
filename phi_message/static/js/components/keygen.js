@@ -1,4 +1,4 @@
-define(['react', 'rsa', 'ecdsa', 'keys'], function(React, RSA, ECDSA, Keys) {
+define(['react', 'rsa', 'ecdsa', 'session'], function(React, RSA, ECDSA, Session) {
 
     var KeyField = React.createClass({
         render: function() {
@@ -68,20 +68,6 @@ define(['react', 'rsa', 'ecdsa', 'keys'], function(React, RSA, ECDSA, Keys) {
     });
 
     var KeyGenerationWizard = React.createClass({
-        statics: {
-            keysToJSON: function(keys) {
-                return {
-                    rsa: {
-                        n: keys.rsa.n.toRadix(16),
-                        e: keys.rsa.e.toString(16)
-                    },
-                    ecdsa: {
-                        x: keys.ecdsa.publicKey.getX().toBigInteger().toRadix(16),
-                        y: keys.ecdsa.publicKey.getY().toBigInteger().toRadix(16)
-                    }
-                };
-            }
-        },
         getInitialState: function() {
             return {
                 step: 0,
@@ -108,8 +94,7 @@ define(['react', 'rsa', 'ecdsa', 'keys'], function(React, RSA, ECDSA, Keys) {
             this.setState({step: this.state.step + 1});
         },
         publishKeys: function() {
-            Keys.publish(this.props.username,
-                KeyGenerationWizard.keysToJSON(this.state.keys))
+            Session.publishKeys(this.props.username, this.state.keys)
                 .then(function() {
                     this.setState({sendingComplete: true});
                 }.bind(this));
@@ -156,7 +141,7 @@ define(['react', 'rsa', 'ecdsa', 'keys'], function(React, RSA, ECDSA, Keys) {
         },
         finish: function() {
             console.log(this.state);
-            this.props.onFinish(KeyGenerationWizard.keysToJSON(this.state.keys));
+            this.props.onFinish();
         },
         render: function() {
             var steps = [this.intro, this.rsa, this.ecdsa, this.transmit];

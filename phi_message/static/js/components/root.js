@@ -52,9 +52,8 @@ define(['react', 'session', 'components/keygen'], function(React, Session, KeyGe
                 session: {username: username}
             });
         },
-        saveKeys: function(keys) {
+        handleFinishGenerate: function() {
             console.log('root.saveKeys');
-            var session = Session.saveSession(this.state.session.username, keys);
             this.setState({session: Session.getSession()});
         },
         render: function() {
@@ -66,7 +65,7 @@ define(['react', 'session', 'components/keygen'], function(React, Session, KeyGe
                 else
                     content = KeyGenerationWizard({
                         username: this.state.session.username,
-                        onFinish: this.saveKeys});
+                        onFinish: this.handleFinishGenerate});
             } else
                 content = Login({onLogin: this.handleLogin});
 
