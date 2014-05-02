@@ -102,7 +102,7 @@ define(['react', 'rsa', 'ecdsa', 'session'], function(React, RSA, ECDSA, Session
         intro: function() {
             return React.DOM.div({},
                 React.DOM.h2({}, "Key Generation"),
-                React.DOM.p({}, "To begin using \uD835\uDF11message, we must first generate some cryptographic keys. To begin, click 'Next'."));
+                React.DOM.p({}, "To begin using \uD835\uDF11Message, we must first generate some cryptographic keys. To begin, click 'Next'."));
         },
         rsa: function() {
             var keys;

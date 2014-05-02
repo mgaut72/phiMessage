@@ -3,7 +3,7 @@ define(['react', 'session', 'components/keygen'], function(React, Session, KeyGe
     var Header = React.createClass({
         render: function() {
             return React.DOM.header({},
-                React.DOM.h1({}, React.DOM.span({className: 'hidden'}, "\uD835\uDF11"), "message"));
+                React.DOM.h1({}, React.DOM.span({className: 'hidden'}, "\uD835\uDF11"), "Message"));
         }
     });
 
@@ -36,7 +36,7 @@ define(['react', 'session', 'components/keygen'], function(React, Session, KeyGe
     var Login = React.createClass({
         render: function() {
             return React.DOM.div({},
-                React.DOM.p({}, "Welcome to \uD835\uDF11message! What's your name?"),
+                React.DOM.p({}, "Welcome to \uD835\uDF11Message! What's your name?"),
                 LoginForm({onLogin: this.props.onLogin}));
         }
     });
