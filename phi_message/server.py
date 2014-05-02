@@ -6,11 +6,15 @@ app = Flask(__name__)
 
 database = collections.defaultdict(list)
 
+
+@app.route('/')
+def index():
+    return render_template('application.html')
+
 @app.route('/keys/<username>', methods=['GET', 'POST'])
 def keys(username):
     if request.method == 'POST':
         data = request.get_json()
-        print "got data" + str(data)
         try:
             did = data['device_id']
             rn = data['rsa']['n']
@@ -23,15 +27,10 @@ def keys(username):
                 'rsa' : {'n' : rn, 'e' : re},
                 'ecdsa' : {'x' : ex, 'y' : ey}}
         database[username].append(keys)
-        print "added " + str(keys) + " to the db"
         return json.dumps(keys)
-
     elif request.method == 'GET':
         return json.dumps(database[username])
 
-@app.route('/')
-def index():
-    return render_template('application.html')
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', debug=True)
