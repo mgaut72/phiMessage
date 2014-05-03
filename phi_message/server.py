@@ -6,7 +6,7 @@ from flask.ext.socketio import SocketIO, emit
 app = Flask(__name__)
 socketio = SocketIO(app)
 
-database = dict()
+database = collections.defaultdict(dict)
 client_to_device = dict()
 
 
@@ -22,7 +22,6 @@ def keys(username):
 
 @socketio.on('message', namespace='/messages')
 def handle_my_message(data):
-    print "got data: " + str(data)
     try:
         sender = data['sender']
         messages = data['ciphertext']
@@ -58,14 +57,10 @@ def messages_connect(data):
     keys = {'device_id': did,
             'rsa': {'n': rn, 'e': re},
             'ecdsa': {'x': ex, 'y': ey}}
+    print "got keys: " + str(keys)
     client = request.namespace
     client_to_device[client] = {'user': user, 'device_id': did}
     database[user][did] = keys
-
-    # tell the new client (response)
-    emit('users', {'users': database.keys()})
-
-    # tell everyone else (broadcast)
     emit('users', {'users': database.keys()}, broadcast=True)
 
 
@@ -78,11 +73,6 @@ def messages_disconnect():
     del database[username][did]
     if database[username] == {}:
         del database[username]
-
-    # tell the new client (response)
-    emit('users', {'users': database.keys()})
-
-    # tell everyone else (broadcast)
     emit('users', {'users': database.keys()}, broadcast=True)
 
 if __name__ == '__main__':
