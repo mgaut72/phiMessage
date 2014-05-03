@@ -38,8 +38,8 @@ define(['jsbn/jsbn2', 'ajax'], function(JSBN, AJAX) {
 
         var payload = {
             device_id: deviceId.toRadix(16),
-            rsa: keysJSON.rsa,
-            ecdsa: keysJSON.ecdsa
+            rsa: keysJSON.rsa.public,
+            ecdsa: keysJSON.ecdsa.public
         };
 
         return AJAX.post('/keys/' + username, payload)
@@ -51,12 +51,16 @@ define(['jsbn/jsbn2', 'ajax'], function(JSBN, AJAX) {
     var keysToJSON = function(keys) {
         return {
             rsa: {
-                n: keys.rsa.n.toRadix(16),
-                e: keys.rsa.e.toString(16)
+                public: {
+                    n: keys.rsa.n.toRadix(16),
+                    e: keys.rsa.e.toString(16)
+                }
             },
             ecdsa: {
-                x: keys.ecdsa.publicKey.getX().toBigInteger().toRadix(16),
-                y: keys.ecdsa.publicKey.getY().toBigInteger().toRadix(16)
+                public: {
+                    x: keys.ecdsa.publicKey.getX().toBigInteger().toRadix(16),
+                    y: keys.ecdsa.publicKey.getY().toBigInteger().toRadix(16)
+                }
             }
         };
     };
