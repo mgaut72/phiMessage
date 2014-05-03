@@ -13,6 +13,7 @@ database = collections.defaultdict(list)
 def index():
     return render_template('application.html')
 
+
 @app.route('/keys/<username>', methods=['GET', 'POST'])
 def keys(username):
     if request.method == 'POST':
@@ -26,12 +27,13 @@ def keys(username):
         except:
             return 'Malformed key object', 400
         keys = {'device_id': did,
-                'rsa' : {'n' : rn, 'e' : re},
-                'ecdsa' : {'x' : ex, 'y' : ey}}
+                'rsa': {'n': rn, 'e': re},
+                'ecdsa': {'x': ex, 'y': ey}}
         database[username].append(keys)
         return json.dumps(keys)
     elif request.method == 'GET':
         return json.dumps(database[username])
+
 
 @socketio.on('message', namespace='/messages')
 def handle_my_message(data):
@@ -56,16 +58,6 @@ def handle_my_message(data):
              }
         emit(str(device_id), m, namespace='/messages', broadcast=True)
 
-
-
-
-
-
-
-
-
-
 if __name__ == '__main__':
     app.debug = True
     socketio.run(app, host='0.0.0.0', port=5000)
-
