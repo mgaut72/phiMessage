@@ -17,7 +17,6 @@ h1.hidden {
 
 h1::before {
     content: '𝜑';
-    font-size: 1.5em;
 }
 
 #content {
