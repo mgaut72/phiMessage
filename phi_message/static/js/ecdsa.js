@@ -9,7 +9,7 @@ define(['jsbn/ec', 'jsbn/sec'], function(ECC, Curves) {
 
             var publicKey = g.multiply(k);
             return {
-                e: k,
+                k: k,
                 publicKey: publicKey
             };
         }

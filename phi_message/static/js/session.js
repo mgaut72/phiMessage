@@ -32,6 +32,7 @@ define(['jsbn/jsbn2', 'ajax'], function(JSBN, AJAX) {
     var publish = function(username, keys) {
 
         var keysJSON = keysToJSON(keys);
+        console.log(keysJSON);
 
         var rng = new SecureRandom();
         var deviceId = new BigInteger(256, 1, rng);
@@ -49,17 +50,30 @@ define(['jsbn/jsbn2', 'ajax'], function(JSBN, AJAX) {
     };
 
     var keysToJSON = function(keys) {
+        console.log(keys);
         return {
             rsa: {
                 public: {
                     n: keys.rsa.n.toRadix(16),
                     e: keys.rsa.e.toString(16)
+                },
+                private: {
+                    coeff: keys.rsa.coeff.toRadix(16),
+                    d: keys.rsa.d.toRadix(16),
+                    dmp1: keys.rsa.dmp1.toRadix(16),
+                    dmq1: keys.rsa.dmq1.toRadix(16),
+                    p: keys.rsa.p.toRadix(16),
+                    q: keys.rsa.q.toRadix(16)
                 }
             },
             ecdsa: {
                 public: {
                     x: keys.ecdsa.publicKey.getX().toBigInteger().toRadix(16),
-                    y: keys.ecdsa.publicKey.getY().toBigInteger().toRadix(16)
+                    y: keys.ecdsa.publicKey.getY().toBigInteger().toRadix(16),
+                    z: keys.ecdsa.publicKey.z.toRadix(16)
+                },
+                private: {
+                    k: keys.ecdsa.k.toRadix(16)
                 }
             }
         };

@@ -43,7 +43,7 @@ define(['react', 'rsa', 'ecdsa', 'session'], function(React, RSA, ECDSA, Session
             var content;
             if (this.props.keys) {
                 content = React.DOM.form({className: 'form-horizontal', role: 'form'},
-                    KeyField({name: 'e', content: this.props.keys.e}),
+                    KeyField({name: 'k', content: this.props.keys.k}),
                     KeyField({name: 'x', content: this.props.keys.x.toBigInteger().toString()}),
                     KeyField({name: 'y', content: this.props.keys.y.toBigInteger().toString()}));
             } else
@@ -125,7 +125,7 @@ define(['react', 'rsa', 'ecdsa', 'session'], function(React, RSA, ECDSA, Session
             if (this.state.keys.ecdsa) {
                 var key = this.state.keys.ecdsa;
                 keys = {
-                    e: key.e,
+                    k: key.k,
                     x: key.publicKey.getX(),
                     y: key.publicKey.getY()
                 };
