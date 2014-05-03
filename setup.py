@@ -11,6 +11,8 @@ setup(
         author_email='mgaut72@gmail.com, cjlarose@gmail.com',
         url='https://github.com/mgaut72/phiMessage',
         packages=find_packages(),
-        install_requires=['Flask>=0.10.1']
+        install_requires=['Flask>=0.10.1',
+                          'Flask-SocketIO',
+                          ]
         )
 
