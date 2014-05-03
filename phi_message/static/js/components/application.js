@@ -1,4 +1,4 @@
-define(['react', 'underscore', 'session', 'sockets'], function(React, _, Session, Sockets) {
+define(['react', 'underscore', 'session', 'sockets', 'messages'], function(React, _, Session, Sockets, Messages) {
 
     var UserList = React.createClass({
         handleClick: function(user, e) {
@@ -28,7 +28,7 @@ define(['react', 'underscore', 'session', 'sockets'], function(React, _, Session
         handleSubmit: function(e) {
             e.preventDefault();
             console.log('encrypt');
-            console.log(this.state.plaintext);
+            this.props.onSubmit(this.state.plaintext);
         },
         render: function() {
             return React.DOM.div({},
@@ -44,23 +44,18 @@ define(['react', 'underscore', 'session', 'sockets'], function(React, _, Session
     });
 
     var Conversation = React.createClass({
-        requestKeys: function(props) {
-            if (props.contact && !props.contactKeys)
-                props.onRequestKeys(props.contact);
-        },
-        componentDidMount: function() {
-            this.requestKeys(this.props);
-        },
-        componentWillReceiveProps: function(nextProps) {
-            this.requestKeys(nextProps);
+        encryptMessage: function(plaintext) {
+            console.log('encrypting');
+            var encrypted = Messages.encrypt(plaintext, this.props.keys, this.props.contactKeys);
+            console.log(encrypted);
         },
         render: function() {
             if (!this.props.contact)
                 return React.DOM.div({id: 'conversation', className: 'inactive'});
             return React.DOM.div({id: 'conversation', className: 'active'},
                 React.DOM.h2({}, this.props.contact),
-                ComposeMessage({keys: this.props.contactKeys,
-                    contact: this.props.contact}));
+                ComposeMessage({contact: this.props.contact,
+                    onSubmit: this.encryptMessage}));
         }
     });
 
@@ -75,13 +70,14 @@ define(['react', 'underscore', 'session', 'sockets'], function(React, _, Session
         },
         handleRequestKeys: function(contact) {
             console.log('get keys for contact ' + contact);
-            Session.getKeys(contact, function(keys) {
+            Session.getKeys(contact).then(function(keys) {
                 this.state.keys[contact] = keys;
                 this.setState({keys: this.state.keys});
-            });
+            }.bind(this));
         },
         handleSelectContact: function(contact) {
             this.setState({contact: contact});
+            this.handleRequestKeys(contact);
         },
         login: function() {
             Session.publishKeys(this.props.session.username, this.props.session.keys);
@@ -102,7 +98,8 @@ define(['react', 'underscore', 'session', 'sockets'], function(React, _, Session
                     onSelectContact: this.handleSelectContact}),
                 Conversation({messages: this.state.messages[this.state.contact],
                     contact: this.state.contact,
-                    onRequestKeys: this.handleRequestKeys}));
+                    keys: this.props.session.keys,
+                    contactKeys: this.state.keys[this.state.contact]}));
         }
     });
 

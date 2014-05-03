@@ -111,7 +111,6 @@ define(['jsbn/jsbn2', 'ajax', 'jsbn/ec', 'sockets', 'rsvp'], function(JSBN, AJAX
 
     var getKeys = function(username) {
         return AJAX.get('/keys/' + username).then(function(keys) {
-            console.log('keys for ' + username);
             return keys;
         });
     };
