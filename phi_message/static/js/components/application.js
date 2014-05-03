@@ -1,4 +1,4 @@
-define(['react', 'underscore'], function(React, _) {
+define(['react', 'underscore', 'session'], function(React, _, Session) {
 
     var UserList = React.createClass({
         handleClick: function(user, e) {
@@ -78,7 +78,11 @@ define(['react', 'underscore'], function(React, _) {
         handleSelectContact: function(contact) {
             this.setState({contact: contact});
         },
+        login: function() {
+            Session.publishKeys(this.props.session.username, this.props.session.keys);
+        },
         componentDidMount: function() {
+            this.login();
             var fakeUsers = ['matt', 'taylor', 'chris', 'daniel'];
             _.each(fakeUsers, function(user, i) {
                 setTimeout(function(k) {

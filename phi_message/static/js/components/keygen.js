@@ -94,10 +94,10 @@ define(['react', 'rsa', 'ecdsa', 'session'], function(React, RSA, ECDSA, Session
             this.setState({step: this.state.step + 1});
         },
         publishKeys: function() {
-            Session.publishKeys(this.props.username, this.state.keys)
-                .then(function() {
-                    this.setState({sendingComplete: true});
-                }.bind(this));
+            Session.saveSession(this.props.username, this.state.keys);
+            window.setTimeout(function() {
+                this.setState({sendingComplete: true});
+            }.bind(this), 1000);
         },
         intro: function() {
             return React.DOM.div({},

@@ -41,7 +41,7 @@ define(['jsbn/jsbn2', 'ajax', 'jsbn/ec', 'sockets', 'rsvp'], function(JSBN, AJAX
 
         return new RSVP.Promise(function(resolve, reject) {
             Sockets.messages.emit('login', payload, function() {
-                saveSession(username, keys);
+                console.log('keys sent to server');
                 resolve();
             });
         });
