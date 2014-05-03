@@ -16,6 +16,33 @@ define(['react', 'underscore'], function(React, _) {
         }
     });
 
+    var ComposeMessage = React.createClass({
+        getInitialState: function() {
+            return {
+                plaintext: ''
+            };
+        },
+        handlePlaintextChange: function(e) {
+            this.setState({plaintext: e.target.value});
+        },
+        handleSubmit: function(e) {
+            e.preventDefault();
+            console.log('encrypt');
+            console.log(this.state.plaintext);
+        },
+        render: function() {
+            return React.DOM.div({},
+                React.DOM.form({className: 'form-inline', role: 'form', onSubmit: this.handleSubmit},
+                    React.DOM.div({className: 'form-group'},
+                        React.DOM.textarea({
+                            value: this.state.plaintext,
+                            placeholder: 'Type a message here.',
+                            className: 'form-control',
+                            onChange: this.handlePlaintextChange})),
+                    React.DOM.input({type: 'submit', className: 'btn btn-primary', value: 'Encrypt'})));
+        }
+    });
+
     var Conversation = React.createClass({
         requestKeys: function(props) {
             if (props.contact && !props.contactKeys)
@@ -31,7 +58,9 @@ define(['react', 'underscore'], function(React, _) {
             if (!this.props.contact)
                 return React.DOM.div({id: 'conversation', className: 'inactive'});
             return React.DOM.div({id: 'conversation', className: 'active'},
-                React.DOM.h2({}, this.props.contact));
+                React.DOM.h2({}, this.props.contact),
+                ComposeMessage({keys: this.props.contactKeys,
+                    contact: this.props.contact}));
         }
     });
 
