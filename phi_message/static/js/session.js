@@ -7,10 +7,14 @@ define(['jsbn/jsbn2', 'ajax'], function(JSBN, AJAX) {
         if (username && keys) {
             return {
                 username: username,
-                keys: keys
+                keys: JSONToKeys(JSON.parse(keys))
             };
         }
         return null;
+    };
+
+    var JSONToKeys = function(obj) {
+        return obj;
     };
 
     var saveSession = function(username, keys) {

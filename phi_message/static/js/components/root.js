@@ -57,6 +57,7 @@ define(['react', 'session', 'components/keygen'], function(React, Session, KeyGe
             this.setState({session: Session.getSession()});
         },
         render: function() {
+            console.log(this.state.session);
             var content;
             if (this.state.session) {
                 if (this.state.session.keys)
