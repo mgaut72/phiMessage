@@ -62,6 +62,11 @@ def messages_connect(data):
     client_to_device[client] = {'user': user, 'device_id': did}
     database[user].append(keys)
 
+    # tell the new client (response)
+    emit('users', {'users': database.keys()})
+
+    # tell everyone else (broadcast)
+    emit('users', {'users': database.keys()}, broadcast=True)
 
 if __name__ == '__main__':
     app.debug = True
