@@ -1,4 +1,4 @@
-define(['react', 'session', 'components/keygen'], function(React, Session, KeyGenerationWizard) {
+define(['react', 'session', 'components/keygen', 'components/application'], function(React, Session, KeyGenerationWizard, Application) {
 
     var Header = React.createClass({
         render: function() {
@@ -76,8 +76,7 @@ define(['react', 'session', 'components/keygen'], function(React, Session, KeyGe
             var content;
             if (this.state.session) {
                 if (this.state.session.keys)
-                    content = React.DOM.div({},
-                        "Welcome, " + this.state.session.username);
+                    content = Application({session: this.state.session});
                 else
                     content = KeyGenerationWizard({
                         username: this.state.session.username,

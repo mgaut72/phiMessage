@@ -1,4 +1,4 @@
-define(['jsbn/jsbn2', 'ajax'], function(JSBN, AJAX) {
+define(['jsbn/jsbn2', 'ajax', 'jsbn/ec'], function(JSBN, AJAX, EC) {
 
     var getSession = function() {
         console.log('get session for user');
@@ -11,20 +11,6 @@ define(['jsbn/jsbn2', 'ajax'], function(JSBN, AJAX) {
             };
         }
         return null;
-    };
-
-    var JSONToKeys = function(obj) {
-        /*
-        return {
-            rsa: {
-                
-            },
-            ecdsa: {
-
-            }
-        }
-        */
-        return obj;
     };
 
     var saveSession = function(username, keys) {
@@ -57,6 +43,35 @@ define(['jsbn/jsbn2', 'ajax'], function(JSBN, AJAX) {
                 saveSession(username, keys);
             });
     };
+
+    var JSONToKeys = function(keys) {
+        var rsa = new RSAKey();
+        rsa.setPrivateEx(keys.rsa.public.n,
+            keys.rsa.public.e,
+            keys.rsa.private.d,
+            keys.rsa.private.p,
+            keys.rsa.private.q,
+            keys.rsa.private.dmp1,
+            keys.rsa.private.dmq1,
+            keys.rsa.private.coeff);
+
+        var curve = secp256r1().getCurve();
+
+        var point = new ECPointFp(curve,
+            curve.fromBigInteger(parseBigInt(keys.ecdsa.public.x, 16)),
+            curve.fromBigInteger(parseBigInt(keys.ecdsa.public.y, 16)),
+            parseBigInt(keys.ecdsa.public.z));
+        var k = parseBigInt(keys.ecdsa.private.k, 16);
+
+        return {
+            rsa: rsa,
+            ecdsa: {
+                publicKey: point,
+                k: k
+            }
+        };
+    };
+
 
     var keysToJSON = function(keys) {
         return {
