@@ -18,7 +18,8 @@ require.config({
         'jsbn/rng': ['jsbn/prng4'],
         'jsbn/rsa': ['jsbn/jsbn', 'jsbn/rng'],
         'jsbn/rsa2': ['jsbn/jsbn2', 'jsbn/rsa'],
-        'jsbn/jsbn2': ['jsbn/jsbn']
+        'jsbn/jsbn2': ['jsbn/jsbn'],
+        'json/ec': ['jsbn/jsbn2']
     }
 });
 
