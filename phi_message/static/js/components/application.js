@@ -1,4 +1,4 @@
-define(['react', 'underscore', 'session'], function(React, _, Session) {
+define(['react', 'underscore', 'session', 'sockets'], function(React, _, Session, Sockets) {
 
     var UserList = React.createClass({
         handleClick: function(user, e) {
@@ -68,7 +68,8 @@ define(['react', 'underscore', 'session'], function(React, _, Session) {
         getInitialState: function() {
             return {
                 messages: {},
-                users: {},      // user: key map
+                users: [],
+                keys: {}, // user: key map
                 contact: null
             };
         },
@@ -81,20 +82,19 @@ define(['react', 'underscore', 'session'], function(React, _, Session) {
         login: function() {
             Session.publishKeys(this.props.session.username, this.props.session.keys);
         },
-        componentDidMount: function() {
-            this.login();
-            var fakeUsers = ['matt', 'taylor', 'chris', 'daniel'];
-            _.each(fakeUsers, function(user, i) {
-                setTimeout(function(k) {
-                    var users = this.state.users;
-                    users[fakeUsers[k]] = null;
-                    this.setState({users: users}); 
-                }.bind(this, i), i * 1000);
+        listenForUsers: function() {
+            Sockets.messages.on('users', function(msg) {
+                console.log(msg.users);
+                this.setState({users: msg.users});
             }.bind(this));
+        },
+        componentDidMount: function() {
+            this.listenForUsers();
+            this.login();
         },
         render: function() {
             return React.DOM.div({id: 'application'},
-                UserList({users: _.keys(this.state.users),
+                UserList({users: this.state.users,
                     onSelectContact: this.handleSelectContact}),
                 Conversation({messages: this.state.messages[this.state.contact],
                     contact: this.state.contact,
