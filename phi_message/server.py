@@ -1,12 +1,13 @@
 import collections
 import json
-from flask import Flask, Response, request, render_template
+from flask import Flask, Response, request, render_template, session
 from flask.ext.socketio import SocketIO, emit
 
 app = Flask(__name__)
 socketio = SocketIO(app)
 
-database = collections.defaultdict(list)
+database = dict()
+client_to_device = dict()
 
 
 @app.route('/')
@@ -14,25 +15,9 @@ def index():
     return render_template('application.html')
 
 
-@app.route('/keys/<username>', methods=['GET', 'POST'])
+@app.route('/keys/<username>', methods=['GET'])
 def keys(username):
-    if request.method == 'POST':
-        data = request.get_json()
-        try:
-            did = data['device_id']
-            rn = data['rsa']['n']
-            re = data['rsa']['e']
-            ex = data['ecdsa']['x']
-            ey = data['ecdsa']['y']
-        except:
-            return 'Malformed key object', 400
-        keys = {'device_id': did,
-                'rsa': {'n': rn, 'e': re},
-                'ecdsa': {'x': ex, 'y': ey}}
-        database[username].append(keys)
-        return json.dumps(keys)
-    elif request.method == 'GET':
-        return json.dumps(database[username])
+    return json.dumps(database[username])
 
 
 @socketio.on('message', namespace='/messages')
@@ -57,6 +42,48 @@ def handle_my_message(data):
              'key': {'content': kc, 'signature': ks}
              }
         emit(str(device_id), m, namespace='/messages', broadcast=True)
+
+
+@socketio.on('login', namespace='/messages')
+def messages_connect(data):
+    try:
+        user = data['username']
+        did = data['device_id']
+        rn = data['rsa']['n']
+        re = data['rsa']['e']
+        ex = data['ecdsa']['x']
+        ey = data['ecdsa']['y']
+    except:
+        return
+    keys = {'device_id': did,
+            'rsa': {'n': rn, 'e': re},
+            'ecdsa': {'x': ex, 'y': ey}}
+    client = request.namespace
+    client_to_device[client] = {'user': user, 'device_id': did}
+    database[user][did] = keys
+
+    # tell the new client (response)
+    emit('users', {'users': database.keys()})
+
+    # tell everyone else (broadcast)
+    emit('users', {'users': database.keys()}, broadcast=True)
+
+
+@socketio.on('disconnect', namespace='/messages')
+def messages_disconnect():
+    client = request.namespace
+    username = client_to_device[client]['user']
+    did = client_to_device[client]['device_id']
+    del client_to_device[client]
+    del database[username][did]
+    if database[username] == {}:
+        del database[username]
+
+    # tell the new client (response)
+    emit('users', {'users': database.keys()})
+
+    # tell everyone else (broadcast)
+    emit('users', {'users': database.keys()}, broadcast=True)
 
 if __name__ == '__main__':
     app.debug = True
