@@ -4,7 +4,7 @@ define(['react', 'underscore'], function(React, _) {
         render: function() {
             return React.DOM.div({},
                 React.DOM.h2({}, "Online Users"),
-                React.DOM.ul({id: 'user-list'},
+                React.DOM.ul({id: 'user-list', className: 'nav nav-pills nav-stacked'},
                     _.map(this.props.users, function(user) {
                         return React.DOM.li({key: user},
                             React.DOM.a({href: '#'}, user));
