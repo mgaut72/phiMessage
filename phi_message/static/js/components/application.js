@@ -21,13 +21,13 @@ define(['react', 'underscore'], function(React, _) {
         },
         componentDidMount: function() {
             var fakeUsers = ['matt', 'taylor', 'chris', 'daniel'];
-            for (var i = 0; i < fakeUsers.length; i++) {
+            _.each(fakeUsers, function(user, i) {
                 setTimeout(function(k) {
                     var users = this.state.users;
                     users.push(fakeUsers[k]);
                     this.setState({users: users}); 
                 }.bind(this, i), i * 1000);
-            }
+            }.bind(this));
         },
         render: function() {
             return React.DOM.div({id: 'application'},
