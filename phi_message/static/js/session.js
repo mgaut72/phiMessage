@@ -1,4 +1,4 @@
-define(['jsbn/jsbn2', 'ajax', 'jsbn/ec', 'sockets', 'rsvp'], function(JSBN, AJAX, EC, Sockets, RSVP) {
+define(['jsbn/jsbn2', 'ajax', 'jsbn/ec', 'sockets', 'rsvp', 'underscore'], function(JSBN, AJAX, EC, Sockets, RSVP, _) {
 
     var getSession = function() {
         console.log('get session for user');
@@ -110,8 +110,21 @@ define(['jsbn/jsbn2', 'ajax', 'jsbn/ec', 'sockets', 'rsvp'], function(JSBN, AJAX
     };
 
     var getKeys = function(username) {
-        return AJAX.get('/keys/' + username).then(function(keys) {
-            return keys;
+        return AJAX.get('/keys/' + username).then(function(response) {
+            console.log('keys for user ' + username);
+            console.log(response);
+            var devices = _.map(response, function(keys) {
+                console.log(keys);
+                var rsaKey = new RSAKey();
+                rsaKey.setPublic(keys.rsa.n, keys.rsa.e);
+                var device = {
+                    id: keys.device_id,
+                    rsa: rsaKey
+                };
+                return device;
+            });
+            console.log(devices);
+            return devices;
         });
     };
 
