@@ -17,6 +17,16 @@ define(['react', 'underscore'], function(React, _) {
     });
 
     var Conversation = React.createClass({
+        requestKeys: function(props) {
+            if (props.contact && !props.contactKeys)
+                props.onRequestKeys(props.contact);
+        },
+        componentDidMount: function() {
+            this.requestKeys(this.props);
+        },
+        componentWillReceiveProps: function(nextProps) {
+            this.requestKeys(nextProps);
+        },
         render: function() {
             if (!this.props.contact)
                 return React.DOM.div({id: 'conversation', className: 'inactive'});
@@ -29,9 +39,12 @@ define(['react', 'underscore'], function(React, _) {
         getInitialState: function() {
             return {
                 messages: {},
-                users: [],
+                users: {},      // user: key map
                 contact: null
             };
+        },
+        handleRequestKeys: function(contact) {
+            console.log('get keys for contact ' + contact);
         },
         handleSelectContact: function(contact) {
             this.setState({contact: contact});
@@ -41,17 +54,18 @@ define(['react', 'underscore'], function(React, _) {
             _.each(fakeUsers, function(user, i) {
                 setTimeout(function(k) {
                     var users = this.state.users;
-                    users.push(fakeUsers[k]);
+                    users[fakeUsers[k]] = null;
                     this.setState({users: users}); 
                 }.bind(this, i), i * 1000);
             }.bind(this));
         },
         render: function() {
             return React.DOM.div({id: 'application'},
-                UserList({users: this.state.users,
+                UserList({users: _.keys(this.state.users),
                     onSelectContact: this.handleSelectContact}),
                 Conversation({messages: this.state.messages[this.state.contact],
-                    contact: this.state.contact}));
+                    contact: this.state.contact,
+                    onRequestKeys: this.handleRequestKeys}));
         }
     });
 
