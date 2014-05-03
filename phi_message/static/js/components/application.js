@@ -75,6 +75,10 @@ define(['react', 'underscore', 'session', 'sockets'], function(React, _, Session
         },
         handleRequestKeys: function(contact) {
             console.log('get keys for contact ' + contact);
+            Session.getKeys(contact, function(keys) {
+                this.state.keys[contact] = keys;
+                this.setState({keys: this.state.keys});
+            });
         },
         handleSelectContact: function(contact) {
             this.setState({contact: contact});

@@ -107,13 +107,21 @@ define(['jsbn/jsbn2', 'ajax', 'jsbn/ec', 'sockets', 'rsvp'], function(JSBN, AJAX
 
     var clear = function() {
         sessionStorage.clear();
-    }
+    };
+
+    var getKeys = function(username) {
+        return AJAX.get('/keys/' + username).then(function(keys) {
+            console.log('keys for ' + username);
+            return keys;
+        });
+    };
 
     return {
         getSession: getSession,
         saveSession: saveSession,
         publishKeys: publish,
-        clear: clear
+        clear: clear,
+        getKeys: getKeys
     };
 
 });
