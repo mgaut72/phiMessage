@@ -14,6 +14,16 @@ define(['jsbn/jsbn2', 'ajax'], function(JSBN, AJAX) {
     };
 
     var JSONToKeys = function(obj) {
+        /*
+        return {
+            rsa: {
+                
+            },
+            ecdsa: {
+
+            }
+        }
+        */
         return obj;
     };
 
@@ -32,7 +42,6 @@ define(['jsbn/jsbn2', 'ajax'], function(JSBN, AJAX) {
     var publish = function(username, keys) {
 
         var keysJSON = keysToJSON(keys);
-        console.log(keysJSON);
 
         var rng = new SecureRandom();
         var deviceId = new BigInteger(256, 1, rng);
@@ -50,7 +59,6 @@ define(['jsbn/jsbn2', 'ajax'], function(JSBN, AJAX) {
     };
 
     var keysToJSON = function(keys) {
-        console.log(keys);
         return {
             rsa: {
                 public: {
@@ -79,10 +87,15 @@ define(['jsbn/jsbn2', 'ajax'], function(JSBN, AJAX) {
         };
     };
 
+    var clear = function() {
+        sessionStorage.clear();
+    }
+
     return {
         getSession: getSession,
         saveSession: saveSession,
-        publishKeys: publish
+        publishKeys: publish,
+        clear: clear
     };
 
 });

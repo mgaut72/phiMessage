@@ -22,3 +22,9 @@ h1::before {
 #content {
     margin: 20px;
 }
+
+#logout-button {
+    position: absolute;
+    right: 15px;
+    top: 16px;
+}

@@ -2,8 +2,19 @@ define(['react', 'session', 'components/keygen'], function(React, Session, KeyGe
 
     var Header = React.createClass({
         render: function() {
+            var logoutButton;
+            console.log(this.props);
+            if (this.props.loggedIn) {
+                logoutButton = React.DOM.a({id: 'logout-button',
+                    href: '#',
+                    onClick: function(e) {e.preventDefault(); this.props.onLogout();}.bind(this)},
+                    "Logout");
+            }
+
             return React.DOM.header({},
-                React.DOM.h1({}, React.DOM.span({className: 'hidden'}, "\uD835\uDF11"), "Message"));
+                React.DOM.h1({},
+                    React.DOM.span({className: 'hidden'}, "\uD835\uDF11"), "Message"),
+                    logoutButton);
         }
     });
 
@@ -56,6 +67,10 @@ define(['react', 'session', 'components/keygen'], function(React, Session, KeyGe
             console.log('root.saveKeys');
             this.setState({session: Session.getSession()});
         },
+        handleLogout: function() {
+            Session.clear();
+            this.setState({session: null});
+        },
         render: function() {
             console.log(this.state.session);
             var content;
@@ -71,7 +86,10 @@ define(['react', 'session', 'components/keygen'], function(React, Session, KeyGe
                 content = Login({onLogin: this.handleLogin});
 
             return React.DOM.div({id: 'application'},
-                Header(),
+                Header({
+                    loggedIn: this.state.session !== null && this.state.session.keys,
+                    onLogout: this.handleLogout
+                }),
                 React.DOM.div({id: 'content'}, content));
         }
     });
