@@ -31,7 +31,7 @@ Key generation happens for any *new* device when you log in.
    * Encrypt k with RSA  = rsa(k)
    * Sign SHA-1(aes(m)) with ECDSA
    * Sign SHA-1(rsa(k)) with ECDSA
-3. POST /messages with all ciphertexts
+3. emit to the namespace `/messages` with the event called `message`
 
 ```javascript
 {
@@ -56,6 +56,22 @@ Key generation happens for any *new* device when you log in.
 ```
 
 ## Receiving a Message from Alice
+
+Messages will be recived on a socket namespace `/messages` tagged with an event called `<my device id>`
+
+```javascript
+{
+    "sender": "bob",
+    "message": {
+        "content": "92837498237498abce987987fed",
+        "signature": "2384092359080fedce"
+    },
+    "key": {
+        "content": "abcdef123456789abc123",
+        "signature": "238497234ab"
+    }
+}
+```
 
 1. GET /keys/alice
 2. Compute SHA-1 digests of message.content and key.content
