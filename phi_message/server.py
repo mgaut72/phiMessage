@@ -6,7 +6,7 @@ from flask.ext.socketio import SocketIO, emit
 app = Flask(__name__)
 socketio = SocketIO(app)
 
-database = collections.defaultdict(list)
+database = dict()
 client_to_device = dict()
 
 
@@ -60,7 +60,24 @@ def messages_connect(data):
             'ecdsa': {'x': ex, 'y': ey}}
     client = request.namespace
     client_to_device[client] = {'user': user, 'device_id': did}
-    database[user].append(keys)
+    database[user][did] = keys
+
+    # tell the new client (response)
+    emit('users', {'users': database.keys()})
+
+    # tell everyone else (broadcast)
+    emit('users', {'users': database.keys()}, broadcast=True)
+
+
+@socketio.on('disconnect', namespace='/messages')
+def messages_disconnect():
+    client = request.namespace
+    username = client_to_device[client]['user']
+    did = client_to_device[client]['device_id']
+    del client_to_device[client]
+    del database[username][did]
+    if database[username] == {}:
+        del database[username]
 
     # tell the new client (response)
     emit('users', {'users': database.keys()})
