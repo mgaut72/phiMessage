@@ -69,7 +69,7 @@ define(['react', 'session', 'components/keygen', 'components/application'], func
         },
         handleLogout: function() {
             Session.clear();
-            this.setState({session: null});
+            window.location.reload();
         },
         render: function() {
             console.log(this.state.session);

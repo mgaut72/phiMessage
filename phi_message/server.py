@@ -60,6 +60,8 @@ def messages_connect(data):
     print "got keys: " + str(keys)
     client = request.namespace
     client_to_device[client] = {'user': user, 'device_id': did}
+    if not user in database:
+        database[user] = {}
     database[user][did] = keys
     emit('users', {'users': database.keys()}, broadcast=True)
 
@@ -67,6 +69,9 @@ def messages_connect(data):
 @socketio.on('disconnect', namespace='/messages')
 def messages_disconnect():
     client = request.namespace
+    if client not in client_to_device:
+        return
+
     username = client_to_device[client]['user']
     did = client_to_device[client]['device_id']
     del client_to_device[client]

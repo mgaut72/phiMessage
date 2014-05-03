@@ -1,4 +1,4 @@
-define(['jsbn/jsbn2', 'ajax', 'jsbn/ec'], function(JSBN, AJAX, EC) {
+define(['jsbn/jsbn2', 'ajax', 'jsbn/ec', 'sockets', 'rsvp'], function(JSBN, AJAX, EC, Sockets, RSVP) {
 
     var getSession = function() {
         console.log('get session for user');
@@ -33,15 +33,18 @@ define(['jsbn/jsbn2', 'ajax', 'jsbn/ec'], function(JSBN, AJAX, EC) {
         var deviceId = new BigInteger(256, 1, rng);
 
         var payload = {
+            username: username,
             device_id: deviceId.toRadix(16),
             rsa: keysJSON.rsa.public,
             ecdsa: keysJSON.ecdsa.public
         };
 
-        return AJAX.post('/keys/' + username, payload)
-            .then(function(response) {
+        return new RSVP.Promise(function(resolve, reject) {
+            Sockets.messages.emit('login', payload, function() {
                 saveSession(username, keys);
+                resolve();
             });
+        });
     };
 
     var JSONToKeys = function(keys) {

@@ -23,8 +23,8 @@ require.config({
     }
 });
 
-require(['react', 'components/root', 'rsvp', 'socketio'],
-function(React, Root, RSVP, IO) {
+require(['react', 'components/root', 'rsvp'],
+function(React, Root, RSVP) {
 
     // Catch-all for errors within promises
     RSVP.on('error', function(reason) {
