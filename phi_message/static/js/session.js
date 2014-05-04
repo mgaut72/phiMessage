@@ -47,6 +47,15 @@ define(['jsbn/jsbn2', 'ajax', 'jsbn/ec', 'sockets', 'rsvp', 'underscore'], funct
         });
     };
 
+    var parseECPoint = function(coords) {
+        var curve = secp256r1().getCurve();
+        var point = new ECPointFp(curve,
+            curve.fromBigInteger(parseBigInt(coords.x, 16)),
+            curve.fromBigInteger(parseBigInt(coords.y, 16)),
+            parseBigInt(coords.z));
+        return point;
+    };
+
     var JSONToKeys = function(keys) {
         var rsa = new RSAKey();
         rsa.setPrivateEx(keys.rsa.public.n,
@@ -58,12 +67,8 @@ define(['jsbn/jsbn2', 'ajax', 'jsbn/ec', 'sockets', 'rsvp', 'underscore'], funct
             keys.rsa.private.dmq1,
             keys.rsa.private.coeff);
 
-        var curve = secp256r1().getCurve();
 
-        var point = new ECPointFp(curve,
-            curve.fromBigInteger(parseBigInt(keys.ecdsa.public.x, 16)),
-            curve.fromBigInteger(parseBigInt(keys.ecdsa.public.y, 16)),
-            parseBigInt(keys.ecdsa.public.z));
+        var point = parseECPoint(keys.ecdsa.public);
         var k = parseBigInt(keys.ecdsa.private.k, 16);
 
         return {
@@ -111,20 +116,16 @@ define(['jsbn/jsbn2', 'ajax', 'jsbn/ec', 'sockets', 'rsvp', 'underscore'], funct
 
     var getKeys = function(username) {
         return AJAX.get('/keys/' + username).then(function(response) {
-            console.log('keys for user ' + username);
-            console.log(response);
-            var devices = _.map(response, function(keys) {
-                console.log(keys);
+            return _.map(response, function(keys) {
                 var rsaKey = new RSAKey();
                 rsaKey.setPublic(keys.rsa.n, keys.rsa.e);
-                var device = {
+
+                return {
                     id: keys.device_id,
-                    rsa: rsaKey
+                    rsa: rsaKey,
+                    ecdsa: parseECPoint(keys.ecdsa)
                 };
-                return device;
             });
-            console.log(devices);
-            return devices;
         });
     };
 
