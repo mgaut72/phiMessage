@@ -18,7 +18,8 @@ Key generation happens for any *new* device when you log in.
     },
     "ecdsa": {
         "x": "28795287349abcdef",
-        "y": "82349287398afdcedface"
+        "y": "82349287398afdcedface",
+        "z": "982739ac87d897be"
     }
 }
 ```
