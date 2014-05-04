@@ -1,4 +1,6 @@
-define(['jsbn/jsbn2', 'ajax', 'jsbn/ec', 'sockets', 'rsvp', 'underscore'], function(JSBN, AJAX, EC, Sockets, RSVP, _) {
+define(['jsbn/jsbn2', 'ajax', 'jsbn/ec', 'sockets', 'rsvp', 'underscore', 'sjcl'], function(JSBN, AJAX, EC, Sockets, RSVP, _, SJCL) {
+
+    var curve = SJCL.ecc.curves.c256;
 
     var getSession = function() {
         console.log('get session for user');
@@ -48,12 +50,10 @@ define(['jsbn/jsbn2', 'ajax', 'jsbn/ec', 'sockets', 'rsvp', 'underscore'], funct
     };
 
     var parseECPoint = function(coords) {
-        var curve = secp256r1().getCurve();
-        var point = new ECPointFp(curve,
-            curve.fromBigInteger(parseBigInt(coords.x, 16)),
-            curve.fromBigInteger(parseBigInt(coords.y, 16)),
-            parseBigInt(coords.z));
-        return point;
+        var x = SJCL.codec.hex.toBits(coords.x);
+        var y = SJCL.codec.hex.toBits(coords.y);
+        var point = curve.fromBits(SJCL.bitArray.concat(x, y));
+        return new SJCL.ecc.ecdsa.publicKey(curve, point);
     };
 
     var JSONToKeys = function(keys) {
@@ -69,7 +69,9 @@ define(['jsbn/jsbn2', 'ajax', 'jsbn/ec', 'sockets', 'rsvp', 'underscore'], funct
 
 
         var point = parseECPoint(keys.ecdsa.public);
-        var k = parseBigInt(keys.ecdsa.private.k, 16);
+        var k = SJCL.codec.hex.toBits(keys.ecdsa.private.k);
+        k = SJCL.bn.fromBits(k);
+        k = new SJCL.ecc.ecdsa.secretKey(curve, k);
 
         return {
             rsa: rsa,
@@ -99,12 +101,12 @@ define(['jsbn/jsbn2', 'ajax', 'jsbn/ec', 'sockets', 'rsvp', 'underscore'], funct
             },
             ecdsa: {
                 public: {
-                    x: keys.ecdsa.publicKey.getX().toBigInteger().toRadix(16),
-                    y: keys.ecdsa.publicKey.getY().toBigInteger().toRadix(16),
-                    z: keys.ecdsa.publicKey.z.toRadix(16)
+                    x: SJCL.codec.hex.fromBits(keys.ecdsa.publicKey.get().x),
+                    y: SJCL.codec.hex.fromBits(keys.ecdsa.publicKey.get().y),
+                    z: "0"
                 },
                 private: {
-                    k: keys.ecdsa.k.toRadix(16)
+                    k: SJCL.codec.hex.fromBits(keys.ecdsa.k.get())
                 }
             }
         };

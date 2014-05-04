@@ -1,4 +1,4 @@
-define(['sjcl', 'jsbn/ec', 'jsbn/rng', 'jsbn/rsa'], function(SJCL, EC, RNG, RSA) {
+define(['sjcl', 'jsbn/ec', 'jsbn/rng', 'jsbn/rsa', 'ecdsa'], function(SJCL, EC, RNG, RSA, ECDSA) {
 
     var rng = new SecureRandom();
 
@@ -12,24 +12,24 @@ define(['sjcl', 'jsbn/ec', 'jsbn/rng', 'jsbn/rsa'], function(SJCL, EC, RNG, RSA)
         var k = new BigInteger(128, 1, rng);
         var AESKeyHex = k.toRadix(16);
         var AESKeyBitArray = sjcl.codec.hex.toBits(AESKeyHex);
-        console.log(AESKeyHex);
 
         // encrypt message with AES
         var ciphertext = sjcl.encrypt(AESKeyBitArray, plaintext);
-        console.log(ciphertext);
 
         // encrypt key with RSA
         var encryptedKey = recipientKeys.rsa.encrypt(AESKeyHex);
-        console.log(encryptedKey);
+
+
+        var sign = ECDSA.sign.bind(null, senderKeys.ecdsa.k, senderKeys.ecdsa.publicKey);
 
         return {
             message: {
                 content: ciphertext,
-                signature: ''
+                signature: sign(ciphertext)
             },
             key: {
                 content: encryptedKey,
-                signature: ''
+                signature: sign(encryptedKey)
             }
         }
     };

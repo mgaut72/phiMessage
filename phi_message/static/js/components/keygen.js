@@ -1,4 +1,4 @@
-define(['react', 'rsa', 'ecdsa', 'session'], function(React, RSA, ECDSA, Session) {
+define(['react', 'rsa', 'ecdsa', 'session', 'sjcl'], function(React, RSA, ECDSA, Session, SJCL) {
 
     var KeyField = React.createClass({
         render: function() {
@@ -42,10 +42,11 @@ define(['react', 'rsa', 'ecdsa', 'session'], function(React, RSA, ECDSA, Session
 
             var content;
             if (this.props.keys) {
+                console.log(SJCL);
                 content = React.DOM.form({className: 'form-horizontal', role: 'form'},
-                    KeyField({name: 'k', content: this.props.keys.k}),
-                    KeyField({name: 'x', content: this.props.keys.x.toBigInteger().toString()}),
-                    KeyField({name: 'y', content: this.props.keys.y.toBigInteger().toString()}));
+                    KeyField({name: 'k', content: SJCL.codec.hex.fromBits(this.props.keys.k)}),
+                    KeyField({name: 'x', content: SJCL.codec.hex.fromBits(this.props.keys.x)}),
+                    KeyField({name: 'y', content: SJCL.codec.hex.fromBits(this.props.keys.y)}));
             } else
                 content = React.DOM.div({}, "busy");
 
@@ -125,9 +126,9 @@ define(['react', 'rsa', 'ecdsa', 'session'], function(React, RSA, ECDSA, Session
             if (this.state.keys.ecdsa) {
                 var key = this.state.keys.ecdsa;
                 keys = {
-                    k: key.k,
-                    x: key.publicKey.getX(),
-                    y: key.publicKey.getY()
+                    k: key.k.get(),
+                    x: key.publicKey.get().x,
+                    y: key.publicKey.get().y
                 };
             }
 

@@ -1,22 +1,23 @@
-define(['jsbn/ec', 'jsbn/sec'], function(ECC, Curves) {
+define(['sjcl'], function(SJCL) {
+
     return {
+        /*
+         * Generate an ECDSA keypair (k, (x,y))
+         */
         generate: function() {
-            var curveParams = secp256r1();
-            var g = curveParams.getG();
-            var n = curveParams.getN();
-
-            var rng = new SecureRandom();
-
-            // choose random  k [0,n-1]
-            var k = new BigInteger(256, 1, rng);
-            while (k.compareTo(n) > 0)
-                k = new BigInteger(256, 1, rng);
-
-            var publicKey = g.multiply(k);
+            var keys = SJCL.ecc.ecdsa.generateKeys();
+            console.log(keys);
             return {
-                k: k,
-                publicKey: publicKey
+                k: keys.sec,
+                publicKey: keys.pub
             };
+        },
+        sign: function(k, publicKey, message) {
+            console.log(SJCL.ecc);
+            /*
+            var hash = hex_sha1(message);
+            console.log(hash);
+            */
         }
     };
 });
