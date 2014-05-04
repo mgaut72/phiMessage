@@ -46,8 +46,15 @@ define(['react', 'underscore', 'session', 'sockets', 'messages'], function(React
     var Conversation = React.createClass({
         encryptMessage: function(plaintext) {
             console.log('encrypting');
-            var encrypted = Messages.encrypt(plaintext, this.props.keys, this.props.contactKeys);
-            console.log(encrypted);
+            var result = _.map(this.props.contactDevices, function(device) {
+                var encrypted = Messages.encrypt(plaintext, this.props.keys, device);
+                return {
+                    device_id: device.id,
+                    message: encrypted.message,
+                    key: encrypted.key
+                };
+            }.bind(this));
+            console.log(result);
         },
         render: function() {
             if (!this.props.contact)
@@ -99,7 +106,7 @@ define(['react', 'underscore', 'session', 'sockets', 'messages'], function(React
                 Conversation({messages: this.state.messages[this.state.contact],
                     contact: this.state.contact,
                     keys: this.props.session.keys,
-                    contactKeys: this.state.keys[this.state.contact]}));
+                    contactDevices: this.state.keys[this.state.contact]}));
         }
     });
 
