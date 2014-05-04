@@ -1,4 +1,4 @@
-define(['sjcl'], function(SJCL) {
+define(['sjcl', 'jsbn/sha1'], function(SJCL, SHA1) {
 
     return {
         /*
@@ -6,18 +6,16 @@ define(['sjcl'], function(SJCL) {
          */
         generate: function() {
             var keys = SJCL.ecc.ecdsa.generateKeys();
-            console.log(keys);
             return {
                 k: keys.sec,
                 publicKey: keys.pub
             };
         },
-        sign: function(k, publicKey, message) {
-            console.log(SJCL.ecc);
-            /*
+        sign: function(secretKey, publicKey, message) {
             var hash = hex_sha1(message);
-            console.log(hash);
-            */
+            var hashBitArray = SJCL.codec.hex.toBits(hash);
+            var signature = secretKey.sign(hashBitArray);
+            return SJCL.codec.hex.fromBits(signature);
         }
     };
 });
