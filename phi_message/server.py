@@ -52,12 +52,11 @@ def messages_connect(data):
         re = data['rsa']['e']
         ex = data['ecdsa']['x']
         ey = data['ecdsa']['y']
-        ez = data['ecdsa']['z']
     except:
         return
     keys = {'device_id': did,
             'rsa': {'n': rn, 'e': re},
-            'ecdsa': {'x': ex, 'y': ey, 'z': ez}}
+            'ecdsa': {'x': ex, 'y': ey}}
     print "got keys: " + str(keys)
     client = request.namespace
     client_to_device[client] = {'user': user, 'device_id': did}
