@@ -6,10 +6,12 @@ define(['jsbn/jsbn2', 'ajax', 'jsbn/ec', 'sockets', 'rsvp', 'underscore', 'sjcl'
         console.log('get session for user');
         var username = sessionStorage.getItem('username');
         var keys = sessionStorage.getItem('keys');
+        var deviceId = sessionStorage.getItem('device_id');
         if (username && keys) {
             return {
                 username: username,
-                keys: JSONToKeys(JSON.parse(keys))
+                keys: JSONToKeys(JSON.parse(keys)),
+                deviceId: parseBigInt(deviceId, 16)
             };
         }
         return null;
@@ -21,18 +23,21 @@ define(['jsbn/jsbn2', 'ajax', 'jsbn/ec', 'sockets', 'rsvp', 'underscore', 'sjcl'
         console.log('saving keys ' +  username);
         sessionStorage.setItem('username', username);
         sessionStorage.setItem('keys', JSON.stringify(keys));
-        return {
-            username: username,
-            keys: keys
-        };
-    };
-
-    var publish = function(username, keys) {
-
-        var keysJSON = keysToJSON(keys);
 
         var rng = new SecureRandom();
         var deviceId = new BigInteger(256, 1, rng);
+        sessionStorage.setItem('device_id', deviceId.toRadix(16));
+
+        return {
+            username: username,
+            keys: keys,
+            deviceId: deviceId
+        };
+    };
+
+    var publish = function(username, deviceId, keys) {
+
+        var keysJSON = keysToJSON(keys);
 
         var payload = {
             username: username,

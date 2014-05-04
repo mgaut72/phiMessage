@@ -95,7 +95,7 @@ define(['react', 'underscore', 'session', 'sockets', 'messages'], function(React
             this.handleRequestKeys(contact);
         },
         login: function() {
-            Session.publishKeys(this.props.session.username, this.props.session.keys);
+            Session.publishKeys(this.props.session.username, this.props.session.deviceId, this.props.session.keys);
         },
         listenForUsers: function() {
             Sockets.messages.on('users', function(msg) {
