@@ -44,9 +44,41 @@ define(['react', 'underscore', 'session', 'sockets', 'messages'], function(React
     });
 
     var Conversation = React.createClass({
-        encryptMessage: function(plaintext) {
-            console.log('encrypting');
-            var result = _.map(this.props.contactDevices, function(device) {
+        render: function() {
+            if (!this.props.contact)
+                return React.DOM.div({id: 'conversation', className: 'inactive'});
+            return React.DOM.div({id: 'conversation', className: 'active'},
+                React.DOM.h2({}, this.props.contact),
+                ComposeMessage({contact: this.props.contact,
+                    onSubmit: this.props.onSendMessage}));
+        }
+    });
+
+    var Application = React.createClass({
+        getInitialState: function() {
+            return {
+                messages: {},
+                users: [],
+                keys: {}, // user: key map
+                contact: null
+            };
+        },
+        handleRequestKeys: function(contact) {
+            console.log('get keys for contact ' + contact);
+            Session.getKeys(contact).then(function(keys) {
+                if (keys.length === 0)
+                    console.warn('no keys for contact');
+                this.state.keys[contact] = keys;
+                this.setState({keys: this.state.keys});
+            }.bind(this));
+        },
+        handleSelectContact: function(contact) {
+            this.setState({contact: contact});
+            this.handleRequestKeys(contact);
+        },
+        handleSendMessage: function(plaintext) {
+            var devices = this.state.keys[this.state.contact];
+            var result = _.map(devices, function(device) {
                 var encrypted = Messages.encrypt(plaintext, this.props.session.keys, device);
                 return {
                     device_id: device.id,
@@ -64,36 +96,6 @@ define(['react', 'underscore', 'session', 'sockets', 'messages'], function(React
             };
             Sockets.messages.emit('message', payload);
         },
-        render: function() {
-            if (!this.props.contact)
-                return React.DOM.div({id: 'conversation', className: 'inactive'});
-            return React.DOM.div({id: 'conversation', className: 'active'},
-                React.DOM.h2({}, this.props.contact),
-                ComposeMessage({contact: this.props.contact,
-                    onSubmit: this.encryptMessage}));
-        }
-    });
-
-    var Application = React.createClass({
-        getInitialState: function() {
-            return {
-                messages: {},
-                users: [],
-                keys: {}, // user: key map
-                contact: null
-            };
-        },
-        handleRequestKeys: function(contact) {
-            console.log('get keys for contact ' + contact);
-            Session.getKeys(contact).then(function(keys) {
-                this.state.keys[contact] = keys;
-                this.setState({keys: this.state.keys});
-            }.bind(this));
-        },
-        handleSelectContact: function(contact) {
-            this.setState({contact: contact});
-            this.handleRequestKeys(contact);
-        },
         login: function() {
             Session.publishKeys(this.props.session.username, this.props.session.deviceId, this.props.session.keys);
         },
@@ -103,8 +105,16 @@ define(['react', 'underscore', 'session', 'sockets', 'messages'], function(React
                 this.setState({users: msg.users});
             }.bind(this));
         },
+        listenForMessages: function() {
+            console.log('listening for messages on ' + this.props.session.deviceId.toRadix(16));
+            Sockets.messages.on(this.props.session.deviceId.toRadix(16), function(message) {
+                console.log('received message');
+                console.log(message);
+            });
+        },
         componentDidMount: function() {
             this.listenForUsers();
+            this.listenForMessages();
             this.login();
         },
         render: function() {
@@ -113,8 +123,7 @@ define(['react', 'underscore', 'session', 'sockets', 'messages'], function(React
                     onSelectContact: this.handleSelectContact}),
                 Conversation({messages: this.state.messages[this.state.contact],
                     contact: this.state.contact,
-                    session: this.props.session,
-                    contactDevices: this.state.keys[this.state.contact]}));
+                    onSendMessage: this.handleSendMessage}));
         }
     });
 
