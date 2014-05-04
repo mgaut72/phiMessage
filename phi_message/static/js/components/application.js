@@ -103,8 +103,16 @@ define(['react', 'underscore', 'session', 'sockets', 'messages'], function(React
                 this.setState({users: msg.users});
             }.bind(this));
         },
+        listenForMessages: function() {
+            console.log('listening for messages on ' + this.props.session.deviceId.toRadix(16));
+            Sockets.messages.on(this.props.session.deviceId.toRadix(16), function(message) {
+                console.log('received message');
+                console.log(message);
+            });
+        },
         componentDidMount: function() {
             this.listenForUsers();
+            this.listenForMessages();
             this.login();
         },
         render: function() {

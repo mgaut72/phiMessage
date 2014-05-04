@@ -4,11 +4,11 @@ define(['react', 'session', 'components/keygen', 'components/application'], func
         render: function() {
             var logoutButton;
             console.log(this.props);
-            if (this.props.loggedIn) {
+            if (this.props.username) {
                 logoutButton = React.DOM.a({id: 'logout-button',
                     href: '#',
                     onClick: function(e) {e.preventDefault(); this.props.onLogout();}.bind(this)},
-                    "Logout");
+                    "Logout " + this.props.username);
             }
 
             return React.DOM.header({},
@@ -86,7 +86,7 @@ define(['react', 'session', 'components/keygen', 'components/application'], func
 
             return React.DOM.div({id: 'application'},
                 Header({
-                    loggedIn: this.state.session !== null && this.state.session.keys,
+                    username: this.state.session && this.state.session.keys ? this.state.session.username : null,
                     onLogout: this.handleLogout
                 }),
                 React.DOM.div({id: 'content'}, content));
