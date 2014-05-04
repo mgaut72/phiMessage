@@ -47,7 +47,7 @@ define(['react', 'underscore', 'session', 'sockets', 'messages'], function(React
         encryptMessage: function(plaintext) {
             console.log('encrypting');
             var result = _.map(this.props.contactDevices, function(device) {
-                var encrypted = Messages.encrypt(plaintext, this.props.keys, device);
+                var encrypted = Messages.encrypt(plaintext, this.props.session.keys, device);
                 return {
                     device_id: device.id,
                     message: encrypted.message,
@@ -55,6 +55,14 @@ define(['react', 'underscore', 'session', 'sockets', 'messages'], function(React
                 };
             }.bind(this));
             console.log(result);
+            this.sendMessage(result);
+        },
+        sendMessage: function(ciphertext) {
+            var payload = {
+                sender: this.props.session.username,
+                ciphertext: ciphertext
+            };
+            Sockets.messages.emit('message', payload);
         },
         render: function() {
             if (!this.props.contact)
@@ -105,7 +113,7 @@ define(['react', 'underscore', 'session', 'sockets', 'messages'], function(React
                     onSelectContact: this.handleSelectContact}),
                 Conversation({messages: this.state.messages[this.state.contact],
                     contact: this.state.contact,
-                    keys: this.props.session.keys,
+                    session: this.props.session,
                     contactDevices: this.state.keys[this.state.contact]}));
         }
     });
