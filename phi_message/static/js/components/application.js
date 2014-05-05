@@ -163,7 +163,7 @@ define(['react', 'underscore', 'session', 'sockets', 'messages', 'components/key
             ];
 
             return React.DOM.div({id: 'conversation', className: 'active'},
-                React.DOM.h2({}, React.DOM.a({href: '#', onClick: this.handleBackClick}, React.DOM.i({className: 'glyphicon glyphicon-arrow-left'})), this.props.contact),
+                React.DOM.h2({}, React.DOM.a({href: '#', onClick: this.handleBackClick}, React.DOM.i({className: 'glyphicon glyphicon-arrow-left'})), " " + this.props.contact),
                 steps[this.state.step].bind(this)());
         }
     });
