@@ -10,8 +10,15 @@ define(['react', 'underscore', 'session', 'sockets', 'messages', 'components/key
                 React.DOM.h2({}, "Online Users"),
                 React.DOM.ul({id: 'user-list', className: 'nav nav-pills nav-stacked'},
                     _.map(this.props.users, function(user) {
+                        var messages = this.props.messages[user] || [];
+                        var numUnread = _.filter(messages, function(msg) {
+                            return !msg.decrypted;
+                        }).length;
+                        var badge;
+                        if (numUnread > 0)
+                            badge = React.DOM.span({className: 'badge pull-right'}, numUnread);
                         return React.DOM.li({key: user},
-                            React.DOM.a({href: '#', onClick: this.handleClick.bind(this, user)}, user));
+                            React.DOM.a({href: '#', onClick: this.handleClick.bind(this, user)}, badge, user));
                     }.bind(this))));
         }
     });
@@ -220,6 +227,7 @@ define(['react', 'underscore', 'session', 'sockets', 'messages', 'components/key
             messages[contact].push({
                 type: type,
                 content: plaintext,
+                decrypted: type == 'sent',
                 data: data
             });
             console.log(messages[contact]);
@@ -283,6 +291,7 @@ define(['react', 'underscore', 'session', 'sockets', 'messages', 'components/key
                     onSendMessage: this.sendMessage,
                     onReturn: this.handleReturn}) :
                 UserList({users: this.state.users,
+                    messages: this.state.messages,
                     onSelectContact: this.handleSelectContact}));
         }
     });
