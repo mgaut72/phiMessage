@@ -244,7 +244,10 @@ define(['react', 'underscore', 'session', 'sockets', 'messages', 'components/key
         listenForUsers: function() {
             Sockets.messages.on('users', function(msg) {
                 console.log(msg.users);
-                this.setState({users: msg.users});
+                var users = _.reject(msg.users, function(user) {
+                    return user == this.props.session.username;
+                }.bind(this));
+                this.setState({users: users});
             }.bind(this));
         },
         listenForMessages: function() {
