@@ -93,6 +93,19 @@ define(['react', 'underscore', 'session', 'sockets', 'messages', 'components/key
                     React.DOM.p({}, "Now, we'll encipher your message to " + this.props.contact + " with AES running in CCM mode, with a randomly selected initialization vector (IV). Here, both the IVs and the ciphertexts are displayed in base 64."),
                     React.DOM.form({className: 'form-horizontal', role: 'form'}, ciphertexts),
                     React.DOM.button({className: 'btn btn-default', onClick: this.nextStep}, "Next"));
+            },
+            encryptKeys: function() {
+                var ciphertexts = _.map(this.state.message, function(device, idx) {
+                    return KeyField({
+                        name: "Device " + (idx + 1) + " Key",
+                        content: device.key.content});
+                });
+
+                return React.DOM.div({},
+                    React.DOM.h2({}, "Encipher Keys"),
+                    React.DOM.p({}, "Now your message is encrypted with AES, but we also need to send the key and initialization vector to " + this.props.contact + ". To do this, we'll encrypt these items with " + this.props.contact + "'s public RSA encryption key."),
+                    React.DOM.form({className: 'form-horizontal', role: 'form'}, ciphertexts),
+                    React.DOM.button({className: 'btn btn-default', onClick: this.nextStep}, "Next"));
             }
         },
         render: function() {
@@ -100,7 +113,12 @@ define(['react', 'underscore', 'session', 'sockets', 'messages', 'components/key
                 return React.DOM.div({id: 'conversation', className: 'inactive'});
             
             console.log('step', this.state.step);
-            var steps = [this.steps.compose, this.steps.selectKeys, this.steps.encryptMessage];
+            var steps = [
+                this.steps.compose,
+                this.steps.selectKeys,
+                this.steps.encryptMessage,
+                this.steps.encryptKeys
+            ];
 
             return React.DOM.div({id: 'conversation', className: 'active'},
                 React.DOM.h2({}, this.props.contact),
