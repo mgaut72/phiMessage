@@ -39,6 +39,11 @@ define(['sjcl', 'jsbn/ec', 'jsbn/rng', 'jsbn/rsa', 'ecdsa'], function(SJCL, EC, 
     function decrypt(message, senderKeys, recipientKeys) {
         console.log(arguments);
         console.log('decrypting');
+
+        // verify signature of key and message
+        var verify = ECDSA.verify.bind(null, senderKeys.ecdsa);
+        verify(message.key.content, message.key.signature);
+        verify(message.message.content, message.message.signature);
     };
 
     return {

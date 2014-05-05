@@ -16,6 +16,12 @@ define(['sjcl', 'jsbn/sha1'], function(SJCL, SHA1) {
             var hashBitArray = SJCL.codec.hex.toBits(hash);
             var signature = secretKey.sign(hashBitArray);
             return SJCL.codec.hex.fromBits(signature);
+        },
+        verify: function(publicKey, message, hexSignature) {
+            var hash = hex_sha1(message);
+            var hashBitArray = SJCL.codec.hex.toBits(hash);
+            var signatureBits = SJCL.codec.hex.toBits(hexSignature);
+            return publicKey.verify(hashBitArray, signatureBits);
         }
     };
 });
