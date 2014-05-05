@@ -144,6 +144,10 @@ define(['react', 'underscore', 'session', 'sockets', 'messages', 'components/key
                     React.DOM.button({className: 'btn btn-default', onClick: this.sendMessage}, "Finish"));
             }
         },
+        handleBackClick: function(e) {
+            e.preventDefault();
+            this.props.onReturn();
+        },
         render: function() {
             if (!this.props.contact)
                 return React.DOM.div({id: 'conversation', className: 'inactive'});
@@ -159,7 +163,7 @@ define(['react', 'underscore', 'session', 'sockets', 'messages', 'components/key
             ];
 
             return React.DOM.div({id: 'conversation', className: 'active'},
-                React.DOM.h2({}, this.props.contact),
+                React.DOM.h2({}, React.DOM.a({href: '#', onClick: this.handleBackClick}, React.DOM.i({className: 'glyphicon glyphicon-arrow-left'})), this.props.contact),
                 steps[this.state.step].bind(this)());
         }
     });
@@ -264,14 +268,19 @@ define(['react', 'underscore', 'session', 'sockets', 'messages', 'components/key
             this.listenForMessages();
             this.login();
         },
+        handleReturn: function() {
+            this.setState({contact: null});
+        },
         render: function() {
             return React.DOM.div({id: 'application'},
-                UserList({users: this.state.users,
-                    onSelectContact: this.handleSelectContact}),
+                this.state.contact ?
                 Conversation({messages: this.state.messages[this.state.contact],
                     contact: this.state.contact,
                     encrypt: this.encrypt,
-                    onSendMessage: this.sendMessage}));
+                    onSendMessage: this.sendMessage,
+                    onReturn: this.handleReturn}) :
+                UserList({users: this.state.users,
+                    onSelectContact: this.handleSelectContact}));
         }
     });
 
