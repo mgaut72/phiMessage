@@ -43,28 +43,41 @@ define(['react', 'underscore', 'session', 'sockets', 'messages', 'components/key
         }
     });
 
+    var MessageList = React.createClass({
+        render: function() {
+            var items = _.map(this.props.messages, function(msg) {
+                return React.DOM.li({className: msg.type}, msg.content);
+            });
+            return React.DOM.ul({id: 'message-list'},
+                items);
+        }
+    });
+
     var Conversation = React.createClass({
         getInitialState: function() {
             return {
                 step: 0,
-                message: null
+                message: null,
+                plaintext: null
             };
         },
         handleSendMessage: function(plaintext) {
             var result = this.props.encrypt(this.props.contact, plaintext);
-            this.setState({step: 1, message: result});
+            this.setState({step: 1, message: result, plaintext: plaintext});
         },
         nextStep: function() {
             this.setState({step: this.state.step + 1});
         },
         sendMessage: function() {
-            this.props.onSendMessage(this.state.message);
-            this.setState({message: null, step: 0});
+            this.props.onSendMessage(this.state.message, this.state.plaintext);
+            this.setState({message: null, step: 0, plaintext: null});
         },
         steps: {
             compose: function() {
-                return ComposeMessage({contact: this.props.contact,
-                    onSubmit: this.handleSendMessage});
+                return React.DOM.div({},
+                    MessageList({messages: this.props.messages}),
+                    ComposeMessage({contact: this.props.contact,
+                        onSubmit: this.handleSendMessage}));
             },
             selectKeys: function() {
                 var keys = _.map(this.state.message, function(device, idx) {
@@ -173,7 +186,7 @@ define(['react', 'underscore', 'session', 'sockets', 'messages', 'components/key
             this.setState({contact: contact});
             this.handleRequestKeys(contact);
         },
-        sendMessage: function(ciphertext) {
+        sendMessage: function(ciphertext, plaintext) {
             var payload = {
                 sender: this.props.session.username,
                 ciphertext: _.map(ciphertext, function(ct) {
@@ -190,7 +203,20 @@ define(['react', 'underscore', 'session', 'sockets', 'messages', 'components/key
                     };
                 })
             };
+
             Sockets.messages.emit('message', payload);
+            this.addMessage(this.state.contact, plaintext);
+        },
+        addMessage: function(contact, plaintext) {
+            var messages = this.state.messages;
+            if (messages[contact] === undefined)
+                messages[contact] = [];
+            messages[contact].push({
+                type: 'sent',
+                content: plaintext
+            });
+            console.log(messages[contact]);
+            this.setState({messages: messages});
         },
         login: function() {
             Session.publishKeys(this.props.session.username, this.props.session.deviceId, this.props.session.keys);
