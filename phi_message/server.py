@@ -79,11 +79,13 @@ def register_session():
 def messages_disconnect():
     client = session['id']
     if client not in client_to_device:
+        emit('users', {'users': database.keys()}, broadcast=True)
         return
 
     username = client_to_device[client]['user']
     did = client_to_device[client]['device_id']
     del client_to_device[client]
+    device_to_client[(username, did)].remove(client)
 
     # only delete device if there are no sessions
     if not device_to_client[(username, did)]:
@@ -91,6 +93,8 @@ def messages_disconnect():
 
     if not database[username]:
         del database[username]
+    print client_to_device
+    print device_to_client
     emit('users', {'users': database.keys()}, broadcast=True)
 
 if __name__ == '__main__':
