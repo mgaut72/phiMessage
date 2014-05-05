@@ -57,6 +57,10 @@ define(['react', 'underscore', 'session', 'sockets', 'messages', 'components/key
         nextStep: function() {
             this.setState({step: this.state.step + 1});
         },
+        sendMessage: function() {
+            this.props.onSendMessage(this.state.message);
+            this.setState({message: null, step: 0});
+        },
         steps: {
             compose: function() {
                 return ComposeMessage({contact: this.props.contact,
@@ -106,6 +110,25 @@ define(['react', 'underscore', 'session', 'sockets', 'messages', 'components/key
                     React.DOM.p({}, "Now your message is encrypted with AES, but we also need to send the key and initialization vector to " + this.props.contact + ". To do this, we'll encrypt these items with " + this.props.contact + "'s public RSA encryption key."),
                     React.DOM.form({className: 'form-horizontal', role: 'form'}, ciphertexts),
                     React.DOM.button({className: 'btn btn-default', onClick: this.nextStep}, "Next"));
+            },
+            signMessage: function() {
+                var ciphertexts = _.map(this.state.message, function(device, idx) {
+                    return KeyField({
+                        name: "Device " + (idx + 1) + " Signature",
+                        content: device.message.signature});
+                });
+
+                return React.DOM.div({},
+                    React.DOM.h2({}, "Sign Message"),
+                    React.DOM.p({}, "We'll use ECDSA to sign your message so " + this.props.contact + " can verify that you are the one who sent it. We'll compute the message hash, and sign the hash for each device"),
+                    React.DOM.form({className: 'form-horizontal', role: 'form'}, ciphertexts),
+                    React.DOM.button({className: 'btn btn-default', onClick: this.nextStep}, "Next"));
+            },
+            finish: function() {
+                return React.DOM.div({},
+                    React.DOM.h2({}, "Finished!"),
+                    React.DOM.p({}, "We've finished all of the work we need to do to make sure that an attacker cannot read your message to " + this.props.contact + " or forge any messages, while still making it possible for " + this.props.contact + " to read it. Now we can be confident that our message is safe in transit."),
+                    React.DOM.button({className: 'btn btn-default', onClick: this.sendMessage}, "Finish"));
             }
         },
         render: function() {
@@ -117,7 +140,9 @@ define(['react', 'underscore', 'session', 'sockets', 'messages', 'components/key
                 this.steps.compose,
                 this.steps.selectKeys,
                 this.steps.encryptMessage,
-                this.steps.encryptKeys
+                this.steps.encryptKeys,
+                this.steps.signMessage,
+                this.steps.finish
             ];
 
             return React.DOM.div({id: 'conversation', className: 'active'},
@@ -151,7 +176,19 @@ define(['react', 'underscore', 'session', 'sockets', 'messages', 'components/key
         sendMessage: function(ciphertext) {
             var payload = {
                 sender: this.props.session.username,
-                ciphertext: ciphertext
+                ciphertext: _.map(ciphertext, function(ct) {
+                    return {
+                        device_id: ct.device_id,
+                        message: {
+                            content: ct.message.content,
+                            signature: ct.message.signature
+                        },
+                        key: {
+                            content: ct.key.content,
+                            signature: ct.key.signature
+                        }
+                    };
+                })
             };
             Sockets.messages.emit('message', payload);
         },
