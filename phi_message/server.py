@@ -1,13 +1,18 @@
 import collections
 import json
+from uuid import uuid4
 from flask import Flask, Response, request, render_template, session
 from flask.ext.socketio import SocketIO, emit
 
 app = Flask(__name__)
+app.secret_key = 'A0Zr98j/3yX R~XHH!jmN]LWX/,?RT'
+app.config['SESSION_REFRESH_EACH_REQUEST'] = False
+app.config['SESSION_COOKIE_HTTPONLY'] = False
 socketio = SocketIO(app)
 
 database = collections.defaultdict(dict)
 client_to_device = dict()
+device_to_client = collections.defaultdict(list)
 
 
 @app.route('/')
@@ -57,24 +62,34 @@ def messages_connect(data):
     keys = {'device_id': did,
             'rsa': {'n': rn, 'e': re},
             'ecdsa': {'x': ex, 'y': ey}}
-    print "got keys: " + str(keys)
-    client = request.namespace
+    client = session['id']
     client_to_device[client] = {'user': user, 'device_id': did}
+    device_to_client[(user, did)].append(client)
     database[user][did] = keys
     emit('users', {'users': database.keys()}, broadcast=True)
 
 
+@socketio.on('connect', namespace='/messages')
+def register_session():
+    if 'id' not in session:
+        session['id'] = str(uuid4())
+
+
 @socketio.on('disconnect', namespace='/messages')
 def messages_disconnect():
-    client = request.namespace
+    client = session['id']
     if client not in client_to_device:
         return
 
     username = client_to_device[client]['user']
     did = client_to_device[client]['device_id']
     del client_to_device[client]
-    del database[username][did]
-    if database[username] == {}:
+
+    # only delete device if there are no sessions
+    if not device_to_client[(username, did)]:
+        del database[username][did]
+
+    if not database[username]:
         del database[username]
     emit('users', {'users': database.keys()}, broadcast=True)
 
