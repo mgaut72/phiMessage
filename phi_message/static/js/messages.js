@@ -37,6 +37,30 @@ define(['sjcl', 'jsbn/ec', 'jsbn/rng', 'jsbn/rsa', 'ecdsa'], function(SJCL, EC, 
     };
 
     function decrypt(message, senderKeys, recipientKeys) {
+        // verify signature of key and message
+        var verify = ECDSA.verify.bind(null, senderKeys.ecdsa);
+        verify(message.key.content, message.key.signature);
+        verify(message.message.content, message.message.signature);
+
+        // decipher key
+        var AESKeyHex = recipientKeys.rsa.decrypt(message.key.content);
+        var AESKeyBitArray = sjcl.codec.hex.toBits(AESKeyHex);
+
+        // decipher message
+        var plaintext = sjcl.decrypt(AESKeyBitArray, message.message.content);
+
+        return {
+            message: {
+                content: message.message.content,
+                signature: message.message.signature,
+                plaintext: plaintext
+            },
+            key: {
+                content: message.key.content,
+                signature: message.key.signature,
+                plaintext: AESKeyHex
+            }
+        };
     };
 
     return {
