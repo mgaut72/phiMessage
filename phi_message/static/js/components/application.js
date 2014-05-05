@@ -175,11 +175,12 @@ define(['react', 'underscore', 'session', 'sockets', 'messages', 'components/key
         },
         handleRequestKeys: function(contact) {
             console.log('get keys for contact ' + contact);
-            Session.getKeys(contact).then(function(keys) {
+            return Session.getKeys(contact).then(function(keys) {
                 if (keys.length === 0)
                     console.warn('no keys for contact');
                 this.state.keys[contact] = keys;
                 this.setState({keys: this.state.keys});
+                return keys;
             }.bind(this));
         },
         handleSelectContact: function(contact) {
@@ -189,6 +190,7 @@ define(['react', 'underscore', 'session', 'sockets', 'messages', 'components/key
         sendMessage: function(ciphertext, plaintext) {
             var payload = {
                 sender: this.props.session.username,
+                sender_device_id: this.props.session.deviceId.toRadix(16),
                 ciphertext: _.map(ciphertext, function(ct) {
                     return {
                         device_id: ct.device_id,
@@ -245,7 +247,15 @@ define(['react', 'underscore', 'session', 'sockets', 'messages', 'components/key
             Sockets.messages.on(this.props.session.deviceId.toRadix(16), function(message) {
                 console.log('received message');
                 console.log(message);
-            });
+                this.handleRequestKeys(message.sender).then(function(keys) {
+                    console.log(keys);
+                    var deviceKeys = _.find(keys, function(key) {
+                        return key.id == message.sender_device_id;
+                    });
+                    console.log(deviceKeys);
+                    Messages.decrypt(message, deviceKeys, this.props.session.keys);
+                }.bind(this));
+            }.bind(this));
         },
         componentDidMount: function() {
             this.listenForUsers();

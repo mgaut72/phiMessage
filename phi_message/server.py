@@ -29,6 +29,7 @@ def keys(username):
 def handle_my_message(data):
     try:
         sender = data['sender']
+        sender_device_id = data['sender_device_id']
         messages = data['ciphertext']
     except:
         return
@@ -42,6 +43,7 @@ def handle_my_message(data):
         except:
             return
         m = {'sender': sender,
+             'sender_device_id': sender_device_id,
              'message': {'content': mc, 'signature': ms},
              'key': {'content': kc, 'signature': ks}
              }

@@ -37,6 +37,8 @@ define(['sjcl', 'jsbn/ec', 'jsbn/rng', 'jsbn/rsa', 'ecdsa'], function(SJCL, EC, 
     };
 
     function decrypt(message, senderKeys, recipientKeys) {
+        console.log(arguments);
+        console.log('decrypting');
     };
 
     return {
