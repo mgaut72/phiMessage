@@ -207,15 +207,16 @@ define(['react', 'underscore', 'session', 'sockets', 'messages', 'components/key
             };
 
             Sockets.messages.emit('message', payload);
-            this.addMessage(this.state.contact, plaintext);
+            this.addMessage(this.state.contact, plaintext, 'sent');
         },
-        addMessage: function(contact, plaintext) {
+        addMessage: function(contact, plaintext, type, data) {
             var messages = this.state.messages;
             if (messages[contact] === undefined)
                 messages[contact] = [];
             messages[contact].push({
-                type: 'sent',
-                content: plaintext
+                type: type,
+                content: plaintext,
+                data: data
             });
             console.log(messages[contact]);
             this.setState({messages: messages});
@@ -253,7 +254,8 @@ define(['react', 'underscore', 'session', 'sockets', 'messages', 'components/key
                         return key.id == message.sender_device_id;
                     });
                     console.log(deviceKeys);
-                    Messages.decrypt(message, deviceKeys, this.props.session.keys);
+                    var decrypted = Messages.decrypt(message, deviceKeys, this.props.session.keys);
+                    this.addMessage(message.sender, decrypted.message.plaintext, 'received', decrypted);
                 }.bind(this));
             }.bind(this));
         },
