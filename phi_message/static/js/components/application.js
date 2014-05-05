@@ -1,4 +1,4 @@
-define(['react', 'underscore', 'session', 'sockets', 'messages'], function(React, _, Session, Sockets, Messages) {
+define(['react', 'underscore', 'session', 'sockets', 'messages', 'components/key_field'], function(React, _, Session, Sockets, Messages, KeyField) {
 
     var UserList = React.createClass({
         handleClick: function(user, e) {
@@ -43,14 +43,124 @@ define(['react', 'underscore', 'session', 'sockets', 'messages'], function(React
         }
     });
 
+    var MessageList = React.createClass({
+        render: function() {
+            var items = _.map(this.props.messages, function(msg) {
+                return React.DOM.li({className: msg.type}, msg.content);
+            });
+            return React.DOM.ul({id: 'message-list'},
+                items);
+        }
+    });
+
     var Conversation = React.createClass({
+        getInitialState: function() {
+            return {
+                step: 0,
+                message: null,
+                plaintext: null
+            };
+        },
+        handleSendMessage: function(plaintext) {
+            var result = this.props.encrypt(this.props.contact, plaintext);
+            this.setState({step: 1, message: result, plaintext: plaintext});
+        },
+        nextStep: function() {
+            this.setState({step: this.state.step + 1});
+        },
+        sendMessage: function() {
+            this.props.onSendMessage(this.state.message, this.state.plaintext);
+            this.setState({message: null, step: 0, plaintext: null});
+        },
+        steps: {
+            compose: function() {
+                return React.DOM.div({},
+                    MessageList({messages: this.props.messages}),
+                    ComposeMessage({contact: this.props.contact,
+                        onSubmit: this.handleSendMessage}));
+            },
+            selectKeys: function() {
+                var keys = _.map(this.state.message, function(device, idx) {
+                    console.log(device.key.plaintext);
+                    return KeyField({
+                        name: "Device " + (idx + 1),
+                        content: device.key.plaintext});
+                });
+
+                return React.DOM.div({},
+                    React.DOM.h2({}, "Selecting Keys"),
+                    React.DOM.p({}, "We're going to encrypt your message for each of " + this.props.contact + "'s devices, so we'll start by picking random 128-bit AES keys for each one. Each key here is represented in hexadecimal."),
+                    React.DOM.form({className: 'form-horizontal', role: 'form'}, keys),
+                    React.DOM.button({className: 'btn btn-default', onClick: this.nextStep}, "Next"));
+            },
+            encryptMessage: function() {
+                var ciphertexts = _.map(this.state.message, function(device, idx) {
+                    var params = JSON.parse(device.message.content);
+                    return [
+                        KeyField({
+                            name: "Device " + (idx + 1) + " IV",
+                            content: params.iv}),
+                        KeyField({
+                            name: "Device " + (idx + 1) + " Ciphertext",
+                            content: params.ct})
+                    ]
+                });
+                return React.DOM.div({},
+                    React.DOM.h2({}, "Encipher Message"),
+                    React.DOM.p({}, "Now, we'll encipher your message to " + this.props.contact + " with AES running in CCM mode, with a randomly selected initialization vector (IV). Here, both the IVs and the ciphertexts are displayed in base 64."),
+                    React.DOM.form({className: 'form-horizontal', role: 'form'}, ciphertexts),
+                    React.DOM.button({className: 'btn btn-default', onClick: this.nextStep}, "Next"));
+            },
+            encryptKeys: function() {
+                var ciphertexts = _.map(this.state.message, function(device, idx) {
+                    return KeyField({
+                        name: "Device " + (idx + 1) + " Key",
+                        content: device.key.content});
+                });
+
+                return React.DOM.div({},
+                    React.DOM.h2({}, "Encipher Keys"),
+                    React.DOM.p({}, "Now your message is encrypted with AES, but we also need to send the key and initialization vector to " + this.props.contact + ". To do this, we'll encrypt these items with " + this.props.contact + "'s public RSA encryption key."),
+                    React.DOM.form({className: 'form-horizontal', role: 'form'}, ciphertexts),
+                    React.DOM.button({className: 'btn btn-default', onClick: this.nextStep}, "Next"));
+            },
+            signMessage: function() {
+                var ciphertexts = _.map(this.state.message, function(device, idx) {
+                    return KeyField({
+                        name: "Device " + (idx + 1) + " Signature",
+                        content: device.message.signature});
+                });
+
+                return React.DOM.div({},
+                    React.DOM.h2({}, "Sign Message"),
+                    React.DOM.p({}, "We'll use ECDSA to sign your message so " + this.props.contact + " can verify that you are the one who sent it. We'll compute the message hash, and sign the hash for each device"),
+                    React.DOM.form({className: 'form-horizontal', role: 'form'}, ciphertexts),
+                    React.DOM.button({className: 'btn btn-default', onClick: this.nextStep}, "Next"));
+            },
+            finish: function() {
+                return React.DOM.div({},
+                    React.DOM.h2({}, "Finished!"),
+                    React.DOM.p({}, "We've finished all of the work we need to do to make sure that an attacker cannot read your message to " + this.props.contact + " or forge any messages, while still making it possible for " + this.props.contact + " to read it. Now we can be confident that our message is safe in transit."),
+                    React.DOM.button({className: 'btn btn-default', onClick: this.sendMessage}, "Finish"));
+            }
+        },
         render: function() {
             if (!this.props.contact)
                 return React.DOM.div({id: 'conversation', className: 'inactive'});
+            
+            console.log('step', this.state.step);
+            var steps = [
+                this.steps.compose,
+                this.steps.selectKeys,
+                this.steps.encryptMessage,
+                this.steps.encryptKeys,
+                this.steps.signMessage,
+                this.steps.finish
+            ];
+
             return React.DOM.div({id: 'conversation', className: 'active'},
                 React.DOM.h2({}, this.props.contact),
-                ComposeMessage({contact: this.props.contact,
-                    onSubmit: this.props.onSendMessage}));
+                steps[this.state.step].bind(this)());
         }
     });
 
@@ -76,7 +186,42 @@ define(['react', 'underscore', 'session', 'sockets', 'messages'], function(React
             this.setState({contact: contact});
             this.handleRequestKeys(contact);
         },
-        handleSendMessage: function(plaintext) {
+        sendMessage: function(ciphertext, plaintext) {
+            var payload = {
+                sender: this.props.session.username,
+                ciphertext: _.map(ciphertext, function(ct) {
+                    return {
+                        device_id: ct.device_id,
+                        message: {
+                            content: ct.message.content,
+                            signature: ct.message.signature
+                        },
+                        key: {
+                            content: ct.key.content,
+                            signature: ct.key.signature
+                        }
+                    };
+                })
+            };
+
+            Sockets.messages.emit('message', payload);
+            this.addMessage(this.state.contact, plaintext);
+        },
+        addMessage: function(contact, plaintext) {
+            var messages = this.state.messages;
+            if (messages[contact] === undefined)
+                messages[contact] = [];
+            messages[contact].push({
+                type: 'sent',
+                content: plaintext
+            });
+            console.log(messages[contact]);
+            this.setState({messages: messages});
+        },
+        login: function() {
+            Session.publishKeys(this.props.session.username, this.props.session.deviceId, this.props.session.keys);
+        },
+        encrypt: function(recipient, plaintext) {
             var devices = this.state.keys[this.state.contact];
             var result = _.map(devices, function(device) {
                 var encrypted = Messages.encrypt(plaintext, this.props.session.keys, device);
@@ -87,17 +232,7 @@ define(['react', 'underscore', 'session', 'sockets', 'messages'], function(React
                 };
             }.bind(this));
             console.log(result);
-            this.sendMessage(result);
-        },
-        sendMessage: function(ciphertext) {
-            var payload = {
-                sender: this.props.session.username,
-                ciphertext: ciphertext
-            };
-            Sockets.messages.emit('message', payload);
-        },
-        login: function() {
-            Session.publishKeys(this.props.session.username, this.props.session.deviceId, this.props.session.keys);
+            return result;
         },
         listenForUsers: function() {
             Sockets.messages.on('users', function(msg) {
@@ -123,7 +258,8 @@ define(['react', 'underscore', 'session', 'sockets', 'messages'], function(React
                     onSelectContact: this.handleSelectContact}),
                 Conversation({messages: this.state.messages[this.state.contact],
                     contact: this.state.contact,
-                    onSendMessage: this.handleSendMessage}));
+                    encrypt: this.encrypt,
+                    onSendMessage: this.sendMessage}));
         }
     });
 

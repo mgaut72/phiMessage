@@ -25,11 +25,13 @@ define(['sjcl', 'jsbn/ec', 'jsbn/rng', 'jsbn/rsa', 'ecdsa'], function(SJCL, EC, 
         return {
             message: {
                 content: ciphertext,
-                signature: sign(ciphertext)
+                signature: sign(ciphertext),
+                plaintext: plaintext
             },
             key: {
                 content: encryptedKey,
-                signature: sign(encryptedKey)
+                signature: sign(encryptedKey),
+                plaintext: AESKeyHex
             }
         }
     };
