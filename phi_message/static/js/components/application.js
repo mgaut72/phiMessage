@@ -51,10 +51,22 @@ define(['react', 'underscore', 'session', 'sockets', 'messages', 'components/key
     });
 
     var MessageList = React.createClass({
+        handleDecryptMessage: function(i, e) {
+            e.preventDefault();
+            this.props.onDecrypt(i);
+        },
         render: function() {
-            var items = _.map(this.props.messages, function(msg) {
-                return React.DOM.li({className: msg.type}, msg.content);
-            });
+            var items = _.map(this.props.messages, function(msg, i) {
+                if (msg.decrypted)
+                    return React.DOM.li({className: msg.type}, msg.content);
+                else {
+                    var ciphertext = JSON.parse(msg.data.message.content).ct;
+                    return React.DOM.li({className: msg.type + ' encrypted'},
+                        React.DOM.a({href: '#', onClick: this.handleDecryptMessage.bind(this, i)}, '(Decrypt)'),
+                        " ",
+                        ciphertext);
+                }
+            }.bind(this));
             return React.DOM.ul({id: 'message-list'},
                 items);
         }
@@ -79,10 +91,13 @@ define(['react', 'underscore', 'session', 'sockets', 'messages', 'components/key
             this.props.onSendMessage(this.state.message, this.state.plaintext);
             this.setState({message: null, step: 0, plaintext: null});
         },
+        handleDecrypt: function(i) {
+            console.log('handle decrypt', i);
+        },
         steps: {
             compose: function() {
                 return React.DOM.div({},
-                    MessageList({messages: this.props.messages}),
+                    MessageList({messages: this.props.messages, onDecrypt: this.handleDecrypt}),
                     ComposeMessage({contact: this.props.contact,
                         onSubmit: this.handleSendMessage}));
             },
