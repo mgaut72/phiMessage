@@ -128,3 +128,12 @@ h1::before {
   border-width:9px 0 9px 21px;
   border-color:transparent #fff;
 }
+
+/* Public and private key differentiation */
+.key-field.public {
+    background-color: #9DD8A4;
+}
+.key-field.private {
+    background-color: #D88E8E;
+}
+

@@ -9,11 +9,11 @@ define(['react', 'rsa', 'ecdsa', 'session', 'sjcl', 'components/key_field'], fun
             var content;
             if (this.props.keys) {
                 content = React.DOM.form({className: 'form-horizontal', role: 'form'},
-                    KeyField({name: 'p', content: this.props.keys.p}),
-                    KeyField({name: 'q', content: this.props.keys.q}),
-                    KeyField({name: 'n', content: this.props.keys.n}),
-                    KeyField({name: 'e', content: this.props.keys.e}),
-                    KeyField({name: 'd', content: this.props.keys.d}));
+                    KeyField({name: 'p', content: this.props.keys.p, type: 'private'}),
+                    KeyField({name: 'q', content: this.props.keys.q, type: 'private'}),
+                    KeyField({name: 'n', content: this.props.keys.n, type: 'public'}),
+                    KeyField({name: 'e', content: this.props.keys.e, type: 'public'}),
+                    KeyField({name: 'd', content: this.props.keys.d, type: 'private'}));
             } else {
                 content = React.DOM.div({}, "busy");
             }
@@ -35,9 +35,9 @@ define(['react', 'rsa', 'ecdsa', 'session', 'sjcl', 'components/key_field'], fun
             if (this.props.keys) {
                 console.log(SJCL);
                 content = React.DOM.form({className: 'form-horizontal', role: 'form'},
-                    KeyField({name: 'k', content: SJCL.codec.hex.fromBits(this.props.keys.k)}),
-                    KeyField({name: 'x', content: SJCL.codec.hex.fromBits(this.props.keys.x)}),
-                    KeyField({name: 'y', content: SJCL.codec.hex.fromBits(this.props.keys.y)}));
+                    KeyField({name: 'k', content: SJCL.codec.hex.fromBits(this.props.keys.k), type: 'private'}),
+                    KeyField({name: 'x', content: SJCL.codec.hex.fromBits(this.props.keys.x), type: 'public'}),
+                    KeyField({name: 'y', content: SJCL.codec.hex.fromBits(this.props.keys.y), type: 'public'}));
             } else
                 content = React.DOM.div({}, "busy");
 
