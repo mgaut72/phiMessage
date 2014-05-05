@@ -164,6 +164,56 @@ define(['react', 'underscore', 'session', 'sockets', 'messages', 'components/key
         }
     });
 
+    var DecryptionWizard = React.createClass({
+        getInitialState: function() {
+            return {
+                step: 0,
+            };
+        },
+        steps: {
+            verify: function() {
+                return React.DOM.div({},
+                    React.DOM.h2({}, "Verify signature"),
+                    React.DOM.p({}, "To begin verifying the message signature, we first compute the SHA-1 digest of the encrypted message. Then, we'll use " + this.props.contact + "'s public ECDSA key to verify the sender."),
+                    React.DOM.form({className: 'form-horizontal', role: 'form'},
+                        KeyField({name: 'Signature', content: this.props.message.data.message.signature})),
+                    React.DOM.p({}, "The signature checks out."),
+                    React.DOM.button({className: 'btn btn-default', onClick: this.nextStep}, "Next"));
+            },
+            decryptKey: function() {
+                return React.DOM.div({},
+                    React.DOM.h2({}, "Decipher Key"),
+                    React.DOM.p({}, "Now that we're sure that " + this.props.contact + " sent the mesage, we'll decipher the AES key. Recall that messages are enciphered with RSA, so to reverse the encryption, we'll use our own RSA private decryption key."),
+                    React.DOM.form({className: 'form-horizontal', role: 'form'},
+                        KeyField({name: 'AES Key (Ciphertext)', content: this.props.message.data.key.content}),
+                        KeyField({name: 'AES Key (Plaintext)', content: this.props.message.data.key.plaintext})),
+                    React.DOM.button({className: 'btn btn-default', onClick: this.nextStep}, "Next"));
+            },
+            decryptMessage: function() {
+                var msg = JSON.parse(this.props.message.data.message.content);
+                return React.DOM.div({},
+                    React.DOM.h2({}, "Decipher Message"),
+                    React.DOM.p({}, "Now that we have the AES key, it's just a matter of running AES decryption on the ciphertext with the key and initialization vector"),
+                    React.DOM.form({className: 'form-horizontal', role: 'form'},
+                        KeyField({name: 'Message (Ciphertext)', content: msg.ct}),
+                        KeyField({name: 'IV', content: msg.iv}),
+                        KeyField({name: 'Message (Plaintext)', content: this.props.message.data.message.plaintext})),
+                    React.DOM.button({className: 'btn btn-default', onClick: this.props.onFinish}, "Finish"));
+            }
+        },
+        nextStep: function() {
+            this.setState({step: this.state.step + 1});
+        },
+        render: function() {
+            var steps = [
+                this.steps.verify,
+                this.steps.decryptKey,
+                this.steps.decryptMessage
+            ];
+            return React.DOM.div({}, steps[this.state.step].bind(this)());
+        }
+    });
+
     var Conversation = React.createClass({
         getInitialState: function() {
             return {
@@ -184,12 +234,17 @@ define(['react', 'underscore', 'session', 'sockets', 'messages', 'components/key
         },
         handleDecrypt: function(i) {
             console.log('handle decrypt', i);
+            this.setState({message: this.props.messages[i], decrypting: true, index: i});
         },
         compose: function() {
             return React.DOM.div({},
                 MessageList({messages: this.props.messages, onDecrypt: this.handleDecrypt}),
                 ComposeMessage({contact: this.props.contact,
                     onSubmit: this.handleSendMessage}));
+        },
+        stopDecrypting: function() {
+            this.props.onDecryptMessage(this.state.index);
+            this.setState({message: null, decrypting: false});
         },
         handleBackClick: function(e) {
             e.preventDefault();
@@ -201,9 +256,13 @@ define(['react', 'underscore', 'session', 'sockets', 'messages', 'components/key
                 content = EncryptionWizard({
                     message: this.state.message,
                     plaintext: this.state.plaintext,
+                    contact: this.props.contact,
                     onFinish: this.sendMessage});
             else if (this.state.decrypting)
-                content = Readt.DOM.div({}, 'decrypting');
+                content = DecryptionWizard({
+                    message: this.state.message,
+                    contact: this.props.contact,
+                    onFinish: this.stopDecrypting});
             else
                 content = this.compose();
 
@@ -324,6 +383,11 @@ define(['react', 'underscore', 'session', 'sockets', 'messages', 'components/key
         handleReturn: function() {
             this.setState({contact: null});
         },
+        handleDecryptMessage: function(i) {
+            console.log(i);
+            this.state.messages[this.state.contact][i].decrypted = true;
+            this.setState({messages: this.state.messages});
+        },
         render: function() {
             return React.DOM.div({id: 'application'},
                 this.state.contact ?
@@ -331,7 +395,8 @@ define(['react', 'underscore', 'session', 'sockets', 'messages', 'components/key
                     contact: this.state.contact,
                     encrypt: this.encrypt,
                     onSendMessage: this.sendMessage,
-                    onReturn: this.handleReturn}) :
+                    onReturn: this.handleReturn,
+                    onDecryptMessage: this.handleDecryptMessage}) :
                 UserList({users: this.state.users,
                     messages: this.state.messages,
                     onSelectContact: this.handleSelectContact}));
