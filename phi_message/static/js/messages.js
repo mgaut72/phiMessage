@@ -29,7 +29,8 @@ define(['sjcl', 'jsbn/ec', 'jsbn/rng', 'jsbn/rsa', 'ecdsa'], function(SJCL, EC, 
             },
             key: {
                 content: encryptedKey,
-                signature: sign(encryptedKey)
+                signature: sign(encryptedKey),
+                plaintext: AESKeyHex
             }
         }
     };

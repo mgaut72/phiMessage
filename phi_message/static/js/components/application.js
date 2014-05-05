@@ -1,4 +1,4 @@
-define(['react', 'underscore', 'session', 'sockets', 'messages'], function(React, _, Session, Sockets, Messages) {
+define(['react', 'underscore', 'session', 'sockets', 'messages', 'components/key_field'], function(React, _, Session, Sockets, Messages, KeyField) {
 
     var UserList = React.createClass({
         handleClick: function(user, e) {
@@ -44,13 +44,67 @@ define(['react', 'underscore', 'session', 'sockets', 'messages'], function(React
     });
 
     var Conversation = React.createClass({
+        getInitialState: function() {
+            return {
+                step: 0,
+                message: null
+            };
+        },
+        handleSendMessage: function(plaintext) {
+            var result = this.props.encrypt(this.props.contact, plaintext);
+            this.setState({step: 1, message: result});
+        },
+        nextStep: function() {
+            this.setState({step: this.state.step + 1});
+        },
+        steps: {
+            compose: function() {
+                return ComposeMessage({contact: this.props.contact,
+                    onSubmit: this.handleSendMessage});
+            },
+            selectKeys: function() {
+                var keys = _.map(this.state.message, function(device, idx) {
+                    console.log(device.key.plaintext);
+                    return KeyField({
+                        name: "Device " + (idx + 1),
+                        content: device.key.plaintext});
+                });
+
+                return React.DOM.div({},
+                    React.DOM.h2({}, "Selecting Keys"),
+                    React.DOM.p({}, "We're going to encrypt your message for each of " + this.props.contact + "'s devices, so we'll start by picking random 128-bit AES keys for each one. Each key here is represented in hexadecimal."),
+                    React.DOM.form({className: 'form-horizontal', role: 'form'}, keys),
+                    React.DOM.button({className: 'btn btn-default', onClick: this.nextStep}, "Next"));
+            },
+            encryptMessage: function() {
+                var ciphertexts = _.map(this.state.message, function(device, idx) {
+                    var params = JSON.parse(device.message.content);
+                    return [
+                        KeyField({
+                            name: "Device " + (idx + 1) + " IV",
+                            content: params.iv}),
+                        KeyField({
+                            name: "Device " + (idx + 1) + " Ciphertext",
+                            content: params.ct})
+                    ]
+                });
+                return React.DOM.div({},
+                    React.DOM.h2({}, "Encipher Message"),
+                    React.DOM.p({}, "Now, we'll encipher your message to " + this.props.contact + " with AES running in CCM mode, with a randomly selected initialization vector (IV). Here, both the IVs and the ciphertexts are displayed in base 64."),
+                    React.DOM.form({className: 'form-horizontal', role: 'form'}, ciphertexts),
+                    React.DOM.button({className: 'btn btn-default', onClick: this.nextStep}, "Next"));
+            }
+        },
         render: function() {
             if (!this.props.contact)
                 return React.DOM.div({id: 'conversation', className: 'inactive'});
+            
+            console.log('step', this.state.step);
+            var steps = [this.steps.compose, this.steps.selectKeys, this.steps.encryptMessage];
+
             return React.DOM.div({id: 'conversation', className: 'active'},
                 React.DOM.h2({}, this.props.contact),
-                ComposeMessage({contact: this.props.contact,
-                    onSubmit: this.props.onSendMessage}));
+                steps[this.state.step].bind(this)());
         }
     });
 
@@ -76,7 +130,17 @@ define(['react', 'underscore', 'session', 'sockets', 'messages'], function(React
             this.setState({contact: contact});
             this.handleRequestKeys(contact);
         },
-        handleSendMessage: function(plaintext) {
+        sendMessage: function(ciphertext) {
+            var payload = {
+                sender: this.props.session.username,
+                ciphertext: ciphertext
+            };
+            Sockets.messages.emit('message', payload);
+        },
+        login: function() {
+            Session.publishKeys(this.props.session.username, this.props.session.deviceId, this.props.session.keys);
+        },
+        encrypt: function(recipient, plaintext) {
             var devices = this.state.keys[this.state.contact];
             var result = _.map(devices, function(device) {
                 var encrypted = Messages.encrypt(plaintext, this.props.session.keys, device);
@@ -87,17 +151,7 @@ define(['react', 'underscore', 'session', 'sockets', 'messages'], function(React
                 };
             }.bind(this));
             console.log(result);
-            this.sendMessage(result);
-        },
-        sendMessage: function(ciphertext) {
-            var payload = {
-                sender: this.props.session.username,
-                ciphertext: ciphertext
-            };
-            Sockets.messages.emit('message', payload);
-        },
-        login: function() {
-            Session.publishKeys(this.props.session.username, this.props.session.deviceId, this.props.session.keys);
+            return result;
         },
         listenForUsers: function() {
             Sockets.messages.on('users', function(msg) {
@@ -123,7 +177,8 @@ define(['react', 'underscore', 'session', 'sockets', 'messages'], function(React
                     onSelectContact: this.handleSelectContact}),
                 Conversation({messages: this.state.messages[this.state.contact],
                     contact: this.state.contact,
-                    onSendMessage: this.handleSendMessage}));
+                    encrypt: this.encrypt,
+                    onSendMessage: this.sendMessage}));
         }
     });
 
