@@ -75,6 +75,7 @@ def messages_connect(data):
 def register_session():
     if 'id' not in session:
         session['id'] = str(uuid4())
+    emit('users', {'users': database.keys()}, broadcast=True)
 
 
 @socketio.on('disconnect', namespace='/messages')
